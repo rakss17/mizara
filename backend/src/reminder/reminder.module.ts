@@ -5,6 +5,7 @@ import { ReminderSettingsModel } from './models/reminder-settings.model';
 import { ReminderSettingsService } from './reminder-settings.service';
 import { ReminderSettingsController } from './reminder-settings.controller';
 import { RecurringPaymentModule } from '@/recurring-payment/recurring-payment.module';
+import { ReminderSchedulerService } from './reminder-scheduler.service';
 
 @Module({
     imports: [
@@ -12,6 +13,6 @@ import { RecurringPaymentModule } from '@/recurring-payment/recurring-payment.mo
         RecurringPaymentModule,
     ],
     controllers: [ReminderSettingsController],
-    providers: [ReminderSettingsService],
+    providers: [ReminderSettingsService, ReminderSchedulerService],
 })
 export class ReminderModule {}
