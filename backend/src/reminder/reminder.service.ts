@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { format, subDays } from 'date-fns';
+import { format, isSameDay, subDays } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 
 import { RecurringPaymentModel } from '@/recurring-payment/models/recurring-payment.model';
@@ -25,7 +25,7 @@ export class ReminderService {
         this.logger.log(`Finding due reminders...`);
 
         const recurringPayments = await this.recurringPaymentModel.findAll({
-            attributes: ['id', 'name', 'amount', 'due_date'],
+            attributes: ['id', 'name', 'amount', 'due_date', 'user_id'],
             where: { is_archived: false },
             include: [
                 {
@@ -54,6 +54,7 @@ export class ReminderService {
         const dueReminders: {
             recurringPayment: RecurringPaymentModel;
             offsetDays: ReminderOffsetDays;
+            timezone: string;
         }[] = [];
 
         for (const recurringPayment of recurringPayments) {
@@ -65,14 +66,20 @@ export class ReminderService {
                 recurringPayment.reminder_settings?.remind_before_days ?? [];
 
             for (const offsetDays of remindBeforeDays) {
-                // due_date's time-of-day is preserved, so the reminder fires
-                // once "now" reaches the same time-of-day, offsetDays earlier.
+                // due_date's time-of-day is preserved, so within the target
+                // day the reminder only fires once "now" reaches it. Once
+                // the target day has passed, it's skipped, not backfilled.
                 const reminderInstant = subDays(dueDate, offsetDays);
-                const isDue = reminderInstant <= now;
+                const isDue =
+                    isSameDay(reminderInstant, now) && reminderInstant <= now;
                 const key = `${recurringPayment.id}:${offsetDays}`;
 
                 if (isDue && !alreadySentKeys.has(key)) {
-                    dueReminders.push({ recurringPayment, offsetDays });
+                    dueReminders.push({
+                        recurringPayment,
+                        offsetDays,
+                        timezone: REMINDER_TIMEZONE,
+                    });
                 }
             }
         }

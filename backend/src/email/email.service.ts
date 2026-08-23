@@ -1,6 +1,8 @@
+import { ReminderOffsetDays } from '@/common/enum';
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { Transporter } from 'nodemailer';
+import { format } from 'date-fns';
 
 @Injectable()
 export class EmailService {
@@ -67,6 +69,46 @@ export class EmailService {
                 <h1>${code}</h1>
                 <p>This code will expire soon.</p>
             `,
+        });
+    }
+
+    async sendDueReminder(
+        recipientEmail: string,
+        recipientName: string,
+        paymentName: string,
+        amount: string,
+        dueDate: Date,
+        remainingDays: ReminderOffsetDays,
+    ): Promise<void> {
+        const formattedDueDate = format(dueDate, 'MMMM d, yyyy');
+        const formattedDueTime = format(dueDate, 'h:mm a');
+        const dueMessage =
+            remainingDays === ReminderOffsetDays.DueDay
+                ? `Your recurring payment is due <strong>right now</strong>.`
+                : remainingDays === ReminderOffsetDays.OneDayBefore
+                  ? `Your recurring payment is due <strong>tomorrow at ${formattedDueTime}</strong>.`
+                  : `Your recurring payment is due in <strong>${remainingDays} days</strong>.`;
+
+        await this.transporter.sendMail({
+            from: this.from,
+            to: recipientEmail,
+            subject: `Reminder: ${paymentName} is due soon`,
+            html: `
+            <h2>Payment Reminder</h2>
+
+            <p>Hello, ${recipientName}!</p>
+
+            <p>${dueMessage}</p>
+
+            <p><strong>Payment:</strong> ${paymentName}</p>
+            <p><strong>Amount:</strong> ${amount}</p>
+            <p><strong>Due date:</strong> ${formattedDueDate}</p>
+            <p><strong>Due time:</strong> ${formattedDueTime}</p>
+
+            <p>
+                Please make sure you have sufficient funds for this payment.
+            </p>
+        `,
         });
     }
 }

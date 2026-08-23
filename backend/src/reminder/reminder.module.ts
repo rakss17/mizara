@@ -9,6 +9,8 @@ import { RecurringPaymentModule } from '@/recurring-payment/recurring-payment.mo
 import { ReminderSchedulerService } from './reminder-scheduler.service';
 import { ReminderService } from './reminder.service';
 import { RecurringPaymentModel } from '@/recurring-payment/models/recurring-payment.model';
+import { UserModule } from '@/user/user.module';
+import { EmailModule } from '@/email/email.module';
 
 @Module({
     imports: [
@@ -18,6 +20,8 @@ import { RecurringPaymentModel } from '@/recurring-payment/models/recurring-paym
             RecurringPaymentModel,
         ]),
         RecurringPaymentModule,
+        UserModule,
+        EmailModule,
     ],
     controllers: [ReminderSettingsController],
     providers: [
