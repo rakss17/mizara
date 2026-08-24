@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
+import { ScheduleModule } from '@nestjs/schedule';
+
 import { AuthModule } from '@/auth/auth.module';
 import { UserModule } from '@/user/user.module';
 import { EmailModule } from '@/email/email.module';
@@ -33,6 +35,7 @@ import { TransformInterceptor } from '@/common/interceptors/transform.intercepto
                 timezone: 'UTC',
             }),
         }),
+        ScheduleModule.forRoot(),
         AuthModule,
         UserModule,
         EmailModule,

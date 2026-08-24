@@ -105,4 +105,11 @@ export class UserService {
     async findByEmail(email: string) {
         return this.userModel.findOne({ where: { email } });
     }
+
+    async findById(id: string) {
+        return this.userModel.findOne({
+            attributes: ['id', 'email', 'first_name', 'last_name'],
+            where: { id },
+        });
+    }
 }

@@ -32,4 +32,5 @@ export enum ReminderOffsetDays {
 
 export enum ReminderChannel {
     Email = 'email',
+    Push = 'push',
 }

@@ -12,11 +12,13 @@ import {
     UpdatedAt,
     CreatedAt,
     DeletedAt,
+    HasMany,
 } from 'sequelize-typescript';
 
 import { UserModel } from '@/user/models/user.model';
 import { ReminderSettingsModel } from '@/reminder/models/reminder-settings.model';
 import { RecurringPaymentType } from '@/common/enum';
+import { SentReminderModel } from '@/reminder/models/sent-reminder.model';
 
 interface RecurringPayment {
     id?: string;
@@ -147,4 +149,10 @@ export class RecurringPaymentModel extends Model<RecurringPayment> {
         as: 'reminder_settings',
     })
     declare reminder_settings: ReminderSettingsModel | null;
+
+    @HasMany(() => SentReminderModel, {
+        foreignKey: 'recurring_payment_id',
+        as: 'sent_reminders',
+    })
+    declare sent_reminders: SentReminderModel[];
 }
