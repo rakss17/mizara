@@ -26,7 +26,7 @@ interface ReminderSettings {
 }
 
 @Table({
-    tableName: 'Reminder_Settings',
+    tableName: 'reminder_settings',
     underscored: true,
     timestamps: true,
 })

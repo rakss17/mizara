@@ -28,7 +28,7 @@ interface User {
 }
 
 @Table({
-    tableName: 'Users',
+    tableName: 'users',
     underscored: true,
     timestamps: true,
     paranoid: true,

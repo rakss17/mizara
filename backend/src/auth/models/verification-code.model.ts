@@ -25,7 +25,7 @@ interface VerificationCode {
 }
 
 @Table({
-    tableName: 'Verification_Codes',
+    tableName: 'verification_codes',
     underscored: true,
     timestamps: true,
 })

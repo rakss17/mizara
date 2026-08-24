@@ -40,7 +40,7 @@ interface RecurringPayment {
 }
 
 @Table({
-    tableName: 'Recurring_Payments',
+    tableName: 'recurring_payments',
     underscored: true,
     timestamps: true,
     paranoid: true,
