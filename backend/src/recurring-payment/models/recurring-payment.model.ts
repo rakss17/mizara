@@ -17,7 +17,10 @@ import {
 
 import { UserModel } from '@/user/models/user.model';
 import { ReminderSettingsModel } from '@/reminder/models/reminder-settings.model';
-import { RecurringPaymentType } from '@/common/enum';
+import {
+    RecurringPaymentBillingCycle,
+    RecurringPaymentType,
+} from '@/common/enum';
 import { SentReminderModel } from '@/reminder/models/sent-reminder.model';
 
 interface RecurringPayment {
@@ -28,7 +31,7 @@ interface RecurringPayment {
     description?: string;
     amount: number;
     currency?: string;
-    billing_cycle: string;
+    billing_cycle: RecurringPaymentBillingCycle;
     is_auto_renew: boolean;
     is_archived: boolean;
     is_free_trial: boolean;
@@ -94,7 +97,7 @@ export class RecurringPaymentModel extends Model<RecurringPayment> {
         type: DataType.STRING,
         allowNull: false,
     })
-    declare billing_cycle: string;
+    declare billing_cycle: RecurringPaymentBillingCycle;
 
     @Default(true)
     @Column({
