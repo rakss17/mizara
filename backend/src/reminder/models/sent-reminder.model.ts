@@ -27,7 +27,7 @@ interface SentReminder {
 }
 
 @Table({
-    tableName: 'Sent_Reminders',
+    tableName: 'sent_reminders',
     underscored: true,
     timestamps: true,
 })
