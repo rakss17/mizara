@@ -8,6 +8,7 @@ import { ReminderSettingsModel } from './models/reminder-settings.model';
 import { SentReminderModel } from './models/sent-reminder.model';
 import { ReminderChannel, ReminderOffsetDays } from '@/common/enum';
 
+// TODO: real-user timezone is coming from the user settings
 const REMINDER_TIMEZONE = 'Asia/Manila';
 
 @Injectable()

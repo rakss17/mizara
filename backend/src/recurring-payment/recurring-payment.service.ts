@@ -1,12 +1,21 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { Op, Sequelize } from 'sequelize';
+import { addMonths, addQuarters, addWeeks, addYears, format } from 'date-fns';
+import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 
 import { RecurringPaymentModel } from '@/recurring-payment/models/recurring-payment.model';
 import { CreateRecurringPaymentDto } from '@/recurring-payment/dto/create-recurring-payment.dto';
 import { FindAllRecurringPaymentDto } from '@/recurring-payment/dto/find-all-recurring-payment.dto';
 import { UpdateRecurringPaymentDto } from '@/recurring-payment/dto/update-recurring-payment.dto';
-import { RecurringPaymentSortBy, SortOrder } from '@/common/enum';
+import {
+    RecurringPaymentBillingCycle,
+    RecurringPaymentSortBy,
+    SortOrder,
+} from '@/common/enum';
+
+// TODO: real-user timezone is coming from the user settings
+const RECURRING_PAYMENT_TIMEZONE = 'Asia/Manila';
 
 @Injectable()
 export class RecurringPaymentService {
@@ -278,5 +287,89 @@ export class RecurringPaymentService {
         }
 
         return recurringPayment;
+    }
+
+    async advanceDueDates() {
+        this.logger.log(
+            'Advancing due dates for elapsed recurring payments...',
+        );
+
+        const now = toZonedTime(new Date(), RECURRING_PAYMENT_TIMEZONE);
+        const todayDateOnly = format(now, 'yyyy-MM-dd');
+
+        const elapsedPayments = await this.recurringPaymentModel.findAll({
+            where: { is_archived: false, due_date: { [Op.lt]: new Date() } },
+        });
+
+        for (const payment of elapsedPayments) {
+            const dueDateInTz = toZonedTime(
+                payment.due_date,
+                RECURRING_PAYMENT_TIMEZONE,
+            );
+
+            // Due date's calendar day may still be today (reminders may
+            // still be firing for it) - only roll forward past due dates.
+            if (format(dueDateInTz, 'yyyy-MM-dd') >= todayDateOnly) {
+                continue;
+            }
+
+            const transaction = await this.sequelize.transaction();
+            try {
+                if (!payment.is_auto_renew) {
+                    await payment.update(
+                        { is_archived: true },
+                        { transaction },
+                    );
+                    await transaction.commit();
+                    continue;
+                }
+
+                let nextDueDateInTz = dueDateInTz;
+                do {
+                    nextDueDateInTz = this.getNextDueDate(
+                        nextDueDateInTz,
+                        payment.billing_cycle,
+                    );
+                } while (format(nextDueDateInTz, 'yyyy-MM-dd') < todayDateOnly);
+
+                const nextDueDate = fromZonedTime(
+                    nextDueDateInTz,
+                    RECURRING_PAYMENT_TIMEZONE,
+                );
+
+                await payment.update(
+                    { due_date: nextDueDate },
+                    { transaction },
+                );
+                await transaction.commit();
+            } catch (error) {
+                await transaction.rollback();
+
+                this.logger.error(
+                    `Error advancing due date for recurring payment: ${payment.id}`,
+                    error,
+                );
+            }
+        }
+
+        this.logger.log(
+            'Completed advancing due dates for elapsed recurring payments',
+        );
+    }
+
+    private getNextDueDate(
+        dueDate: Date,
+        billingCycle: RecurringPaymentBillingCycle,
+    ): Date {
+        switch (billingCycle) {
+            case RecurringPaymentBillingCycle.Weekly:
+                return addWeeks(dueDate, 1);
+            case RecurringPaymentBillingCycle.Monthly:
+                return addMonths(dueDate, 1);
+            case RecurringPaymentBillingCycle.Quarterly:
+                return addQuarters(dueDate, 1);
+            case RecurringPaymentBillingCycle.Yearly:
+                return addYears(dueDate, 1);
+        }
     }
 }

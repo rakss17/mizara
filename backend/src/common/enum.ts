@@ -12,6 +12,13 @@ export enum RecurringPaymentType {
     Bills = 'Bills',
 }
 
+export enum RecurringPaymentBillingCycle {
+    Weekly = 'Weekly',
+    Monthly = 'Monthly',
+    Quarterly = 'Quarterly',
+    Yearly = 'Yearly',
+}
+
 export enum RecurringPaymentSortBy {
     DueDate = 'due_date',
     Amount = 'amount',

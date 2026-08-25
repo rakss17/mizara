@@ -10,7 +10,10 @@ import {
     Min,
 } from 'class-validator';
 
-import { RecurringPaymentType } from '@/common/enum';
+import {
+    RecurringPaymentBillingCycle,
+    RecurringPaymentType,
+} from '@/common/enum';
 import { IsDateStringWithOffset } from '@/common/validators/is-date-string-with-offset.validator';
 
 export class CreateRecurringPaymentDto {
@@ -44,10 +47,13 @@ export class CreateRecurringPaymentDto {
     @MaxLength(3)
     currency?: string;
 
-    @ApiProperty({ example: 'monthly' })
+    @ApiProperty({
+        example: RecurringPaymentBillingCycle.Monthly,
+        enum: RecurringPaymentBillingCycle,
+    })
     @IsNotEmpty()
-    @IsString()
-    billing_cycle!: string;
+    @IsEnum(RecurringPaymentBillingCycle)
+    billing_cycle!: RecurringPaymentBillingCycle;
 
     @ApiProperty({ example: true })
     @IsNotEmpty()
