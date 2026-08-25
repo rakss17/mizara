@@ -7,6 +7,9 @@ import { RecurringPaymentModel } from '@/recurring-payment/models/recurring-paym
 import { ReminderSettingsModel } from './models/reminder-settings.model';
 import { SentReminderModel } from './models/sent-reminder.model';
 import { ReminderChannel, ReminderOffsetDays } from '@/common/enum';
+import { DueReminder } from './types/due-reminder.type';
+import { UserService } from '@/user/user.service';
+import { EmailService } from '@/email/email.service';
 
 // TODO: real-user timezone is coming from the user settings
 const REMINDER_TIMEZONE = 'Asia/Manila';
@@ -16,6 +19,8 @@ export class ReminderService {
     private readonly logger = new Logger(ReminderService.name);
 
     constructor(
+        private readonly userService: UserService,
+        private readonly emailService: EmailService,
         @InjectModel(RecurringPaymentModel)
         private recurringPaymentModel: typeof RecurringPaymentModel,
         @InjectModel(SentReminderModel)
@@ -52,11 +57,7 @@ export class ReminderService {
             ),
         );
 
-        const dueReminders: {
-            recurringPayment: RecurringPaymentModel;
-            offsetDays: ReminderOffsetDays;
-            timezone: string;
-        }[] = [];
+        const dueReminders: DueReminder[] = [];
 
         for (const recurringPayment of recurringPayments) {
             const dueDate = toZonedTime(
@@ -88,6 +89,54 @@ export class ReminderService {
         this.logger.log(`Found ${dueReminders.length} due reminder(s)`);
 
         return dueReminders;
+    }
+
+    async sendDueReminders(dueReminders: DueReminder[]) {
+        for (const dueReminder of dueReminders) {
+            const userId = dueReminder.recurringPayment.user_id;
+            const foundUser = await this.userService.findById(userId);
+
+            if (!foundUser) {
+                this.logger.warn(
+                    `User not found for recurring payment: ${dueReminder.recurringPayment.id} - cron job not completed.`,
+                );
+                return;
+            }
+
+            const reminderChannels =
+                dueReminder.recurringPayment.reminder_settings?.channels ?? [];
+
+            for (const reminderChannel of reminderChannels) {
+                this.logger.log(
+                    `Sending reminder to user: ${foundUser.email} via ${reminderChannel}`,
+                );
+
+                const dueDate = toZonedTime(
+                    dueReminder.recurringPayment.due_date,
+                    dueReminder.timezone,
+                );
+
+                if (reminderChannel === ReminderChannel.Email) {
+                    await this.emailService.sendDueReminder(
+                        foundUser.email,
+                        foundUser.first_name,
+                        dueReminder.recurringPayment.name,
+                        String(dueReminder.recurringPayment.amount),
+                        dueDate,
+                        dueReminder.offsetDays,
+                    );
+                }
+
+                await this.recordSent(
+                    dueReminder.recurringPayment.id,
+                    dueReminder.offsetDays,
+                    reminderChannel,
+                );
+                this.logger.log(
+                    `Successfully sent reminder to user: ${foundUser.email} via ${reminderChannel}`,
+                );
+            }
+        }
     }
 
     async recordSent(
