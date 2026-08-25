@@ -327,6 +327,13 @@ export class RecurringPaymentService {
                     continue;
                 }
 
+                if (payment.is_free_trial && payment.is_auto_renew) {
+                    await payment.update(
+                        { is_free_trial: false },
+                        { transaction },
+                    );
+                }
+
                 let nextDueDateInTz = dueDateInTz;
                 do {
                     nextDueDateInTz = this.getNextDueDate(

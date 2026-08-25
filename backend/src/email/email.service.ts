@@ -111,4 +111,45 @@ export class EmailService {
         `,
         });
     }
+    async sendFreeTrialReminder(
+        recipientEmail: string,
+        recipientName: string,
+        paymentName: string,
+        amount: string,
+        trialEndDate: Date,
+        remainingDays: ReminderOffsetDays,
+    ): Promise<void> {
+        const formattedDate = format(trialEndDate, 'MMMM d, yyyy');
+        const formattedTime = format(trialEndDate, 'h:mm a');
+
+        const trialMessage =
+            remainingDays === ReminderOffsetDays.DueDay
+                ? `Your free trial for <strong>${paymentName}</strong> ends <strong>right now</strong>.`
+                : remainingDays === ReminderOffsetDays.OneDayBefore
+                  ? `Your free trial for <strong>${paymentName}</strong> ends <strong>tomorrow at ${formattedTime}</strong>.`
+                  : `Your free trial for <strong>${paymentName}</strong> ends <strong>in ${remainingDays} days</strong>.`;
+
+        await this.transporter.sendMail({
+            from: this.from,
+            to: recipientEmail,
+            subject: `Reminder: ${paymentName} free trial ends soon`,
+            html: `
+            <h2>Free Trial Reminder</h2>
+
+            <p>Hello, ${recipientName}!</p>
+
+            <p>${trialMessage}</p>
+
+            <p><strong>Subscription:</strong> ${paymentName}</p>
+            <p><strong>Next payment:</strong> ${amount}</p>
+            <p><strong>Trial ends:</strong> ${formattedDate}</p>
+            <p><strong>Trial end time:</strong> ${formattedTime}</p>
+
+            <p>
+                Your subscription will transition to a paid subscription
+                after your free trial ends.
+            </p>
+        `,
+        });
+    }
 }
