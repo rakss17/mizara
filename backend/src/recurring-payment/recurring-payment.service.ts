@@ -301,6 +301,8 @@ export class RecurringPaymentService {
             where: { is_archived: false, due_date: { [Op.lt]: new Date() } },
         });
 
+        let processedCount = 0;
+
         for (const payment of elapsedPayments) {
             const dueDateInTz = toZonedTime(
                 payment.due_date,
@@ -321,6 +323,7 @@ export class RecurringPaymentService {
                         { transaction },
                     );
                     await transaction.commit();
+                    processedCount++;
                     continue;
                 }
 
@@ -342,6 +345,7 @@ export class RecurringPaymentService {
                     { transaction },
                 );
                 await transaction.commit();
+                processedCount++;
             } catch (error) {
                 await transaction.rollback();
 
@@ -353,7 +357,7 @@ export class RecurringPaymentService {
         }
 
         this.logger.log(
-            'Completed advancing due dates for elapsed recurring payments',
+            `Completed advancing due dates for elapsed ${processedCount} recurring payment(s)`,
         );
     }
 
