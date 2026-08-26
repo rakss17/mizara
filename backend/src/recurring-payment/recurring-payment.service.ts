@@ -13,6 +13,8 @@ import {
     RecurringPaymentSortBy,
     SortOrder,
 } from '@/common/enum';
+import { UserService } from '@/user/user.service';
+import { EmailService } from '@/email/email.service';
 
 // TODO: real-user timezone is coming from the user settings
 const RECURRING_PAYMENT_TIMEZONE = 'Asia/Manila';
@@ -26,6 +28,8 @@ export class RecurringPaymentService {
         private recurringPaymentModel: typeof RecurringPaymentModel,
         @InjectConnection()
         private readonly sequelize: Sequelize,
+        private readonly userService: UserService,
+        private readonly emailService: EmailService,
     ) {}
 
     async create(
@@ -315,6 +319,8 @@ export class RecurringPaymentService {
                 continue;
             }
 
+            const wasFreeTrial = payment.is_free_trial;
+
             const transaction = await this.sequelize.transaction();
             try {
                 if (!payment.is_auto_renew) {
@@ -324,6 +330,10 @@ export class RecurringPaymentService {
                     );
                     await transaction.commit();
                     processedCount++;
+
+                    if (wasFreeTrial) {
+                        await this.notifyFreeTrialEnded(payment, dueDateInTz);
+                    }
                     continue;
                 }
 
@@ -353,6 +363,13 @@ export class RecurringPaymentService {
                 );
                 await transaction.commit();
                 processedCount++;
+
+                if (wasFreeTrial) {
+                    await this.notifyFreeTrialConvertedToPaid(
+                        payment,
+                        nextDueDate,
+                    );
+                }
             } catch (error) {
                 await transaction.rollback();
 
@@ -365,6 +382,50 @@ export class RecurringPaymentService {
 
         this.logger.log(
             `Completed advancing due dates for elapsed ${processedCount} recurring payment(s)`,
+        );
+    }
+
+    private async notifyFreeTrialConvertedToPaid(
+        payment: RecurringPaymentModel,
+        nextDueDate: Date,
+    ) {
+        const foundUser = await this.userService.findById(payment.user_id);
+
+        if (!foundUser) {
+            this.logger.warn(
+                `User not found for recurring payment: ${payment.id} - free trial converted email not sent.`,
+            );
+            return;
+        }
+
+        await this.emailService.sendFreeTrialConvertedToPaid(
+            foundUser.email,
+            foundUser.first_name,
+            payment.name,
+            String(payment.amount),
+            nextDueDate,
+            payment.billing_cycle,
+        );
+    }
+
+    private async notifyFreeTrialEnded(
+        payment: RecurringPaymentModel,
+        trialEndDate: Date,
+    ) {
+        const foundUser = await this.userService.findById(payment.user_id);
+
+        if (!foundUser) {
+            this.logger.warn(
+                `User not found for recurring payment: ${payment.id} - free trial ended email not sent.`,
+            );
+            return;
+        }
+
+        await this.emailService.sendFreeTrialEnded(
+            foundUser.email,
+            foundUser.first_name,
+            payment.name,
+            trialEndDate,
         );
     }
 

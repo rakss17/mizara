@@ -155,4 +155,73 @@ export class EmailService {
         `,
         });
     }
+
+    async sendFreeTrialConvertedToPaid(
+        recipientEmail: string,
+        recipientName: string,
+        paymentName: string,
+        amount: string,
+        nextDueDate: Date,
+        billingCycle: RecurringPaymentBillingCycle,
+    ): Promise<void> {
+        const formattedNextDueDate = format(nextDueDate, 'MMMM d, yyyy');
+        const formattedNextDueTime = format(nextDueDate, 'h:mm a');
+
+        await this.transporter.sendMail({
+            from: this.from,
+            to: recipientEmail,
+            subject: `${paymentName} free trial has ended - now a paid subscription`,
+            html: `
+            <h2>Free Trial Ended</h2>
+
+            <p>Hello, ${recipientName}!</p>
+
+            <p>
+                Your free trial for <strong>${paymentName}</strong> has ended
+                and your subscription has transitioned to a
+                <strong>paid subscription</strong>.
+            </p>
+
+            <p><strong>Subscription:</strong> ${paymentName}</p>
+            <p><strong>Amount:</strong> ${amount} / ${billingCycle}</p>
+            <p><strong>Next payment:</strong> ${formattedNextDueDate}, ${formattedNextDueTime}</p>
+
+            <p>
+                Please make sure you have sufficient funds for your next
+                payment.
+            </p>
+        `,
+        });
+    }
+
+    async sendFreeTrialEnded(
+        recipientEmail: string,
+        recipientName: string,
+        paymentName: string,
+        trialEndDate: Date,
+    ): Promise<void> {
+        const formattedTrialEndDate = format(trialEndDate, 'MMMM d, yyyy');
+        const formattedTrialEndTime = format(trialEndDate, 'h:mm a');
+
+        await this.transporter.sendMail({
+            from: this.from,
+            to: recipientEmail,
+            subject: `${paymentName} free trial has ended`,
+            html: `
+            <h2>Free Trial Ended</h2>
+
+            <p>Hello, ${recipientName}!</p>
+
+            <p>
+                Your free trial for <strong>${paymentName}</strong> ended on
+                <strong>${formattedTrialEndDate}, ${formattedTrialEndTime}</strong>.
+            </p>
+
+            <p>
+                Since auto-renew was turned off, this subscription will not
+                transition to a paid subscription and has been cancelled and archived.
+            </p>
+        `,
+        });
+    }
 }
