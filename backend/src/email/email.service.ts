@@ -143,11 +143,8 @@ export class EmailService {
 
             <p><strong>Subscription:</strong> ${paymentName}</p>
             <p><strong>Trial ends:</strong> ${formattedDate}, ${formattedTime}</p>
+            <p><strong>Then you'll be charged:</strong> ${amount} / ${billingCycle}</p>
 
-            <p>After trial:</p>
-            <p><strong>${amount} / ${billingCycle}</strong></p>
-            <p><strong>Next payment:</strong> ${formattedDate}, ${formattedTime}</p>
-            
             <p>
                 Your subscription will transition to a paid subscription
                 after your free trial ends.
