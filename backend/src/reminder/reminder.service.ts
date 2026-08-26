@@ -117,14 +117,26 @@ export class ReminderService {
                 );
 
                 if (reminderChannel === ReminderChannel.Email) {
-                    await this.emailService.sendDueReminder(
-                        foundUser.email,
-                        foundUser.first_name,
-                        dueReminder.recurringPayment.name,
-                        String(dueReminder.recurringPayment.amount),
-                        dueDate,
-                        dueReminder.offsetDays,
-                    );
+                    if (dueReminder.recurringPayment.is_free_trial) {
+                        await this.emailService.sendFreeTrialReminder(
+                            foundUser.email,
+                            foundUser.first_name,
+                            dueReminder.recurringPayment.name,
+                            String(dueReminder.recurringPayment.amount),
+                            dueDate,
+                            dueReminder.offsetDays,
+                            dueReminder.recurringPayment.billing_cycle
+                        );
+                    } else {
+                        await this.emailService.sendDueReminder(
+                            foundUser.email,
+                            foundUser.first_name,
+                            dueReminder.recurringPayment.name,
+                            String(dueReminder.recurringPayment.amount),
+                            dueDate,
+                            dueReminder.offsetDays,
+                        );
+                    }
                 }
 
                 await this.recordSent(
