@@ -125,6 +125,7 @@ export class ReminderService {
                             String(dueReminder.recurringPayment.amount),
                             dueDate,
                             dueReminder.offsetDays,
+                            dueReminder.recurringPayment.billing_cycle
                         );
                     } else {
                         await this.emailService.sendDueReminder(

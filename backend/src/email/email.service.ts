@@ -1,4 +1,4 @@
-import { ReminderOffsetDays } from '@/common/enum';
+import { RecurringPaymentBillingCycle, ReminderOffsetDays } from '@/common/enum';
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { Transporter } from 'nodemailer';
@@ -118,6 +118,7 @@ export class EmailService {
         amount: string,
         trialEndDate: Date,
         remainingDays: ReminderOffsetDays,
+        billingCycle: RecurringPaymentBillingCycle
     ): Promise<void> {
         const formattedDate = format(trialEndDate, 'MMMM d, yyyy');
         const formattedTime = format(trialEndDate, 'h:mm a');
@@ -141,10 +142,12 @@ export class EmailService {
             <p>${trialMessage}</p>
 
             <p><strong>Subscription:</strong> ${paymentName}</p>
-            <p><strong>Next payment:</strong> ${amount}</p>
-            <p><strong>Trial ends:</strong> ${formattedDate}</p>
-            <p><strong>Trial end time:</strong> ${formattedTime}</p>
+            <p><strong>Trial ends:</strong> ${formattedDate}, ${formattedTime}</p>
 
+            <p>After trial:</p>
+            <p><strong>${amount} / ${billingCycle}</strong></p>
+            <p><strong>Next payment:</strong> ${formattedDate}, ${formattedTime}</p>
+            
             <p>
                 Your subscription will transition to a paid subscription
                 after your free trial ends.
