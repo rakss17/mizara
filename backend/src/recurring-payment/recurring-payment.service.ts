@@ -320,6 +320,8 @@ export class RecurringPaymentService {
             }
 
             const wasFreeTrial = payment.is_free_trial;
+            let wasArchived = false;
+            let nextDueDate: Date | null = null;
 
             const transaction = await this.sequelize.transaction();
             try {
@@ -330,51 +332,63 @@ export class RecurringPaymentService {
                     );
                     await transaction.commit();
                     processedCount++;
-
-                    if (wasFreeTrial) {
-                        await this.notifyFreeTrialEnded(payment, dueDateInTz);
+                    wasArchived = true;
+                } else {
+                    if (payment.is_free_trial) {
+                        await payment.update(
+                            { is_free_trial: false },
+                            { transaction },
+                        );
                     }
-                    continue;
-                }
 
-                if (payment.is_free_trial && payment.is_auto_renew) {
+                    let nextDueDateInTz = dueDateInTz;
+                    do {
+                        nextDueDateInTz = this.getNextDueDate(
+                            nextDueDateInTz,
+                            payment.billing_cycle,
+                        );
+                    } while (
+                        format(nextDueDateInTz, 'yyyy-MM-dd') < todayDateOnly
+                    );
+
+                    nextDueDate = fromZonedTime(
+                        nextDueDateInTz,
+                        RECURRING_PAYMENT_TIMEZONE,
+                    );
+
                     await payment.update(
-                        { is_free_trial: false },
+                        { due_date: nextDueDate },
                         { transaction },
                     );
-                }
-
-                let nextDueDateInTz = dueDateInTz;
-                do {
-                    nextDueDateInTz = this.getNextDueDate(
-                        nextDueDateInTz,
-                        payment.billing_cycle,
-                    );
-                } while (format(nextDueDateInTz, 'yyyy-MM-dd') < todayDateOnly);
-
-                const nextDueDate = fromZonedTime(
-                    nextDueDateInTz,
-                    RECURRING_PAYMENT_TIMEZONE,
-                );
-
-                await payment.update(
-                    { due_date: nextDueDate },
-                    { transaction },
-                );
-                await transaction.commit();
-                processedCount++;
-
-                if (wasFreeTrial) {
-                    await this.notifyFreeTrialConvertedToPaid(
-                        payment,
-                        nextDueDate,
-                    );
+                    await transaction.commit();
+                    processedCount++;
                 }
             } catch (error) {
                 await transaction.rollback();
 
                 this.logger.error(
                     `Error advancing due date for recurring payment: ${payment.id}`,
+                    error,
+                );
+                continue;
+            }
+
+            if (!wasFreeTrial) {
+                continue;
+            }
+
+            try {
+                if (wasArchived) {
+                    await this.notifyFreeTrialEnded(payment, dueDateInTz);
+                } else if (nextDueDate) {
+                    await this.notifyFreeTrialConvertedToPaid(
+                        payment,
+                        nextDueDate,
+                    );
+                }
+            } catch (error) {
+                this.logger.error(
+                    `Error sending free trial email for recurring payment: ${payment.id}`,
                     error,
                 );
             }
