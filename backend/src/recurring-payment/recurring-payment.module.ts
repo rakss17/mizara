@@ -7,12 +7,14 @@ import { RecurringPaymentModel } from './models/recurring-payment.model';
 import { RecurringPaymentSchedulerService } from './recurring-payment-scheduler.service';
 import { UserModule } from '@/user/user.module';
 import { EmailModule } from '@/email/email.module';
+import { CategoryModule } from '@/category/category.module';
 
 @Module({
     imports: [
         SequelizeModule.forFeature([RecurringPaymentModel]),
         UserModule,
         EmailModule,
+        CategoryModule,
     ],
     controllers: [RecurringPaymentController],
     providers: [RecurringPaymentService, RecurringPaymentSchedulerService],
