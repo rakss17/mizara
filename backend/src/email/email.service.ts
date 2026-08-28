@@ -221,4 +221,36 @@ export class EmailService {
         `,
         });
     }
+
+    async sendPaymentArchived(
+        recipientEmail: string,
+        recipientName: string,
+        paymentName: string,
+        dueDate: Date,
+    ): Promise<void> {
+        const formattedDueDate = format(dueDate, 'MMMM d, yyyy');
+        const formattedDueTime = format(dueDate, 'h:mm a');
+
+        await this.transporter.sendMail({
+            from: this.from,
+            to: recipientEmail,
+            subject: `${paymentName} has been cancelled`,
+            html: `
+            <h2>Payment Cancelled</h2>
+
+            <p>Hello, ${recipientName}!</p>
+
+            <p>
+                Your recurring payment <strong>${paymentName}</strong>, which
+                was due on <strong>${formattedDueDate}, ${formattedDueTime}</strong>,
+                has been cancelled.
+            </p>
+
+            <p>
+                Since auto-renew was turned off, this payment will not repeat
+                and has been moved to your archived payments.
+            </p>
+        `,
+        });
+    }
 }
