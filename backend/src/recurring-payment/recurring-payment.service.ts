@@ -402,24 +402,31 @@ export class RecurringPaymentService {
                 continue;
             }
 
-            if (!wasFreeTrial) {
-                continue;
-            }
-
-            try {
-                if (wasArchived) {
-                    await this.notifyFreeTrialEnded(payment, dueDateInTz);
-                } else if (nextDueDate) {
-                    await this.notifyFreeTrialConvertedToPaid(
-                        payment,
-                        nextDueDate,
+            if (wasFreeTrial) {
+                try {
+                    if (wasArchived) {
+                        await this.notifyFreeTrialEnded(payment, dueDateInTz);
+                    } else if (nextDueDate) {
+                        await this.notifyFreeTrialConvertedToPaid(
+                            payment,
+                            nextDueDate,
+                        );
+                    }
+                } catch (error) {
+                    this.logger.error(
+                        `Error sending free trial email for recurring payment: ${payment.id}`,
+                        error,
                     );
                 }
-            } catch (error) {
-                this.logger.error(
-                    `Error sending free trial email for recurring payment: ${payment.id}`,
-                    error,
-                );
+            } else if (wasArchived) {
+                try {
+                    await this.notifyPaymentArchived(payment, dueDateInTz);
+                } catch (error) {
+                    this.logger.error(
+                        `Error sending archived email for recurring payment: ${payment.id}`,
+                        error,
+                    );
+                }
             }
         }
 
@@ -469,6 +476,27 @@ export class RecurringPaymentService {
             foundUser.first_name,
             payment.name,
             trialEndDate,
+        );
+    }
+
+    private async notifyPaymentArchived(
+        payment: RecurringPaymentModel,
+        dueDate: Date,
+    ) {
+        const foundUser = await this.userService.findById(payment.user_id);
+
+        if (!foundUser) {
+            this.logger.warn(
+                `User not found for recurring payment: ${payment.id} - archived email not sent.`,
+            );
+            return;
+        }
+
+        await this.emailService.sendPaymentArchived(
+            foundUser.email,
+            foundUser.first_name,
+            payment.name,
+            dueDate,
         );
     }
 
