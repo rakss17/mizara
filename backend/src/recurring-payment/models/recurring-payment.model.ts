@@ -22,6 +22,7 @@ import {
     RecurringPaymentType,
 } from '@/common/enum';
 import { SentReminderModel } from '@/reminder/models/sent-reminder.model';
+import { CategoryModel } from '@/category/models/category.model';
 
 interface RecurringPayment {
     id?: string;
@@ -37,6 +38,7 @@ interface RecurringPayment {
     is_free_trial: boolean;
     icon?: string;
     due_date: Date;
+    category_id?: string | null;
     created_at?: Date | null;
     updated_at?: Date | null;
     deleted_at?: Date | null;
@@ -132,6 +134,13 @@ export class RecurringPaymentModel extends Model<RecurringPayment> {
     })
     declare due_date: Date;
 
+    @ForeignKey(() => CategoryModel)
+    @Column({
+        type: DataType.UUID,
+        allowNull: true,
+    })
+    declare category_id: string | null;
+
     @CreatedAt
     declare created_at: Date;
 
@@ -158,4 +167,10 @@ export class RecurringPaymentModel extends Model<RecurringPayment> {
         as: 'sent_reminders',
     })
     declare sent_reminders: SentReminderModel[];
+
+    @BelongsTo(() => CategoryModel, {
+        foreignKey: 'category_id',
+        as: 'category',
+    })
+    declare category: CategoryModel | null;
 }

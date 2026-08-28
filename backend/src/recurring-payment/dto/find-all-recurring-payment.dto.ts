@@ -6,6 +6,7 @@ import {
     IsInt,
     IsOptional,
     IsString,
+    IsUUID,
     Min,
 } from 'class-validator';
 
@@ -87,4 +88,9 @@ export class FindAllRecurringPaymentDto {
     @Transform(toBoolean)
     @IsBoolean()
     is_free_trial?: boolean;
+
+    @ApiPropertyOptional({ example: 'b3f2c1a0-1234-4a5b-9c6d-7e8f9a0b1c2d' })
+    @IsOptional()
+    @IsUUID()
+    category_id?: string;
 }
