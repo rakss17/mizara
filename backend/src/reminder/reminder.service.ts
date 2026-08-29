@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { format, isSameDay, subDays } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
+import { Op } from 'sequelize';
 
 import { RecurringPaymentModel } from '@/recurring-payment/models/recurring-payment.model';
 import { ReminderSettingsModel } from './models/reminder-settings.model';
@@ -10,9 +11,10 @@ import { ReminderChannel, ReminderOffsetDays } from '@/common/enum';
 import { DueReminder } from './types/due-reminder.type';
 import { UserService } from '@/user/user.service';
 import { EmailService } from '@/email/email.service';
+import { UserModel } from '@/user/models/user.model';
+import { UserSettingsModel } from '@/user/models/user-settings.model';
 
-// TODO: real-user timezone is coming from the user settings
-const REMINDER_TIMEZONE = 'Asia/Manila';
+const DEFAULT_TIMEZONE = 'Asia/Manila';
 
 @Injectable()
 export class ReminderService {
@@ -40,29 +42,55 @@ export class ReminderService {
                     required: true,
                     where: { is_enabled: true },
                 },
+                {
+                    model: UserModel,
+                    as: 'user',
+                    attributes: ['id'],
+                    include: [
+                        {
+                            model: UserSettingsModel,
+                            as: 'settings',
+                            attributes: ['timezone'],
+                        },
+                    ],
+                },
             ],
         });
 
-        const now = toZonedTime(new Date(), REMINDER_TIMEZONE);
-        const todayDateOnly = format(now, 'yyyy-MM-dd');
-
+        // "Today" is per-user timezone, so a single global date can't
+        // bound this query - widen it to cover every timezone's current
+        // date and disambiguate per-user in the loop below.
         const alreadySent = await this.sentReminderModel.findAll({
-            attributes: ['recurring_payment_id', 'offset_days'],
-            where: { reminder_date: todayDateOnly },
+            attributes: [
+                'recurring_payment_id',
+                'offset_days',
+                'reminder_date',
+            ],
+            where: {
+                reminder_date: {
+                    [Op.gte]: format(subDays(new Date(), 1), 'yyyy-MM-dd'),
+                },
+            },
         });
         const alreadySentKeys = new Set(
             alreadySent.map(
                 (sentReminder) =>
-                    `${sentReminder.recurring_payment_id}:${sentReminder.offset_days}`,
+                    `${sentReminder.recurring_payment_id}:${sentReminder.offset_days}:${sentReminder.reminder_date}`,
             ),
         );
 
         const dueReminders: DueReminder[] = [];
 
         for (const recurringPayment of recurringPayments) {
+            const userSettingsTimezone =
+                recurringPayment.user.settings?.timezone ?? DEFAULT_TIMEZONE;
+
+            const now = toZonedTime(new Date(), userSettingsTimezone);
+            const todayDateOnly = format(now, 'yyyy-MM-dd');
+
             const dueDate = toZonedTime(
                 recurringPayment.due_date,
-                REMINDER_TIMEZONE,
+                userSettingsTimezone,
             );
             const remindBeforeDays =
                 recurringPayment.reminder_settings?.remind_before_days ?? [];
@@ -74,13 +102,13 @@ export class ReminderService {
                 const reminderInstant = subDays(dueDate, offsetDays);
                 const isDue =
                     isSameDay(reminderInstant, now) && reminderInstant <= now;
-                const key = `${recurringPayment.id}:${offsetDays}`;
+                const key = `${recurringPayment.id}:${offsetDays}:${todayDateOnly}`;
 
                 if (isDue && !alreadySentKeys.has(key)) {
                     dueReminders.push({
                         recurringPayment,
                         offsetDays,
-                        timezone: REMINDER_TIMEZONE,
+                        timezone: userSettingsTimezone,
                     });
                 }
             }
@@ -125,7 +153,7 @@ export class ReminderService {
                             String(dueReminder.recurringPayment.amount),
                             dueDate,
                             dueReminder.offsetDays,
-                            dueReminder.recurringPayment.billing_cycle
+                            dueReminder.recurringPayment.billing_cycle,
                         );
                     } else {
                         await this.emailService.sendDueReminder(
@@ -143,6 +171,7 @@ export class ReminderService {
                     dueReminder.recurringPayment.id,
                     dueReminder.offsetDays,
                     reminderChannel,
+                    dueReminder.timezone,
                 );
                 this.logger.log(
                     `Successfully sent reminder to user: ${foundUser.email} via ${reminderChannel}`,
@@ -155,8 +184,9 @@ export class ReminderService {
         recurringPaymentId: string,
         offsetDays: ReminderOffsetDays,
         channel: ReminderChannel,
+        timezone: string,
     ) {
-        const today = toZonedTime(new Date(), REMINDER_TIMEZONE);
+        const today = toZonedTime(new Date(), timezone);
         const todayDateOnly = format(today, 'yyyy-MM-dd');
 
         await this.sentReminderModel.create({

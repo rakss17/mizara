@@ -16,9 +16,10 @@ import {
 import { UserService } from '@/user/user.service';
 import { EmailService } from '@/email/email.service';
 import { CategoryService } from '@/category/category.service';
+import { UserModel } from '@/user/models/user.model';
+import { UserSettingsModel } from '@/user/models/user-settings.model';
 
-// TODO: real-user timezone is coming from the user settings
-const RECURRING_PAYMENT_TIMEZONE = 'Asia/Manila';
+const DEFAULT_TIMEZONE = 'Asia/Manila';
 
 @Injectable()
 export class RecurringPaymentService {
@@ -327,19 +328,41 @@ export class RecurringPaymentService {
             'Advancing due dates for elapsed recurring payments...',
         );
 
-        const now = toZonedTime(new Date(), RECURRING_PAYMENT_TIMEZONE);
-        const todayDateOnly = format(now, 'yyyy-MM-dd');
-
         const elapsedPayments = await this.recurringPaymentModel.findAll({
-            where: { is_archived: false, due_date: { [Op.lt]: new Date() } },
+            where: {
+                is_archived: false,
+                due_date: {
+                    [Op.lt]: new Date(),
+                },
+            },
+            include: [
+                {
+                    model: UserModel,
+                    as: 'user',
+                    attributes: ['id'],
+                    include: [
+                        {
+                            model: UserSettingsModel,
+                            as: 'settings',
+                            attributes: ['timezone'],
+                        },
+                    ],
+                },
+            ],
         });
 
         let processedCount = 0;
 
         for (const payment of elapsedPayments) {
+            const userSettingsTimezone =
+                payment.user.settings?.timezone ?? DEFAULT_TIMEZONE;
+
+            const now = toZonedTime(new Date(), userSettingsTimezone);
+            const todayDateOnly = format(now, 'yyyy-MM-dd');
+
             const dueDateInTz = toZonedTime(
                 payment.due_date,
-                RECURRING_PAYMENT_TIMEZONE,
+                userSettingsTimezone,
             );
 
             // Due date's calendar day may still be today (reminders may
@@ -382,7 +405,7 @@ export class RecurringPaymentService {
 
                     nextDueDate = fromZonedTime(
                         nextDueDateInTz,
-                        RECURRING_PAYMENT_TIMEZONE,
+                        userSettingsTimezone,
                     );
 
                     await payment.update(
