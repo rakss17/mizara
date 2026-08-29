@@ -10,10 +10,12 @@ import {
     CreatedAt,
     DeletedAt,
     HasMany,
+    HasOne,
 } from 'sequelize-typescript';
 
 import { VerificationCodeModel } from '@/auth/models/verification-code.model';
 import { RecurringPaymentModel } from '@/recurring-payment/models/recurring-payment.model';
+import { UserSettingsModel } from '@/user/models/user-settings.model';
 
 interface User {
     id?: string;
@@ -92,4 +94,10 @@ export class UserModel extends Model<User> {
         as: 'recurring_payments',
     })
     declare recurring_payments: RecurringPaymentModel[];
+
+    @HasOne(() => UserSettingsModel, {
+        foreignKey: 'user_id',
+        as: 'settings',
+    })
+    declare settings: UserSettingsModel | null;
 }
