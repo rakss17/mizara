@@ -112,4 +112,19 @@ export class UserService {
             where: { id },
         });
     }
+
+    async findMe(currentUserId: string, currentUserEmail: string) {
+        this.logger.log(`Fetching user details for user: ${currentUserEmail}`);
+
+        const user = await this.findById(currentUserId);
+
+        this.logger.log(
+            `Fetched user details successfully for user: ${currentUserEmail}`,
+        );
+
+        return {
+            message: 'Fetched user details successfully',
+            data: user,
+        };
+    }
 }
