@@ -15,6 +15,7 @@ import { VerificationCodeType } from '@/common/enum';
 interface VerificationCode {
     id?: string;
     user_id: string;
+    email: string;
     code_hash: string;
     type: VerificationCodeType;
     expires_at: Date;
@@ -43,6 +44,13 @@ export class VerificationCodeModel extends Model<VerificationCode> {
         allowNull: false,
     })
     declare user_id: string;
+
+    @Column({
+        type: DataType.STRING,
+        allowNull: false,
+        defaultValue: '',
+    })
+    declare email: string;
 
     @Column({
         type: DataType.STRING,
