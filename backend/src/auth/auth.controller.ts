@@ -1,4 +1,11 @@
-import { Controller, Post, HttpCode, HttpStatus, Body } from '@nestjs/common';
+import {
+    Controller,
+    Post,
+    HttpCode,
+    HttpStatus,
+    Body,
+    UseGuards,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { AuthService } from '@/auth/auth.service';
@@ -9,6 +16,11 @@ import { ResendVerificationCodeDto } from '@/auth/dto/resend-verification.dto';
 import { ForgotPasswordDto } from '@/auth/dto/forgot-password.dto';
 import { VerifyPasswordResetCodeDto } from '@/auth/dto/verify-password-reset-code.dto';
 import { ResetPasswordDto } from '@/auth/dto/reset-password.dto';
+import { CurrentUser } from '@/auth/decorators/current-user.decorator';
+import { ChangeEmailDto } from '@/auth/dto/change-email.dto';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import type { AuthenticatedUser } from '@/auth/types/authenticated-user.type';
+import { VerifyChangeEmailDto } from './dto/verify-change-email.dto';
 
 @ApiTags('Auth')
 @Controller('/api/auth')
@@ -67,5 +79,25 @@ export class AuthController {
             dto.code,
             dto.new_password,
         );
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('change-email')
+    @HttpCode(HttpStatus.OK)
+    async changeEmail(
+        @CurrentUser() user: AuthenticatedUser,
+        @Body() dto: ChangeEmailDto,
+    ) {
+        return this.authService.changeEmail(user.email, dto);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('verify-change-email')
+    @HttpCode(HttpStatus.OK)
+    async verifyChangeEmail(
+        @CurrentUser() user: AuthenticatedUser,
+        @Body() dto: VerifyChangeEmailDto,
+    ) {
+        return this.authService.verifyChangeEmail(user.email, dto);
     }
 }

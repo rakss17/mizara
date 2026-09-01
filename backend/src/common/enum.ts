@@ -5,6 +5,7 @@ export enum UserStatus {
 export enum VerificationCodeType {
     EmailVerification = 'Email Verification',
     PasswordReset = 'Password Reset',
+    ChangeEmail = 'Change Email',
 }
 
 export enum RecurringPaymentType {
