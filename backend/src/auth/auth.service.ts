@@ -573,12 +573,20 @@ export class AuthService {
 
             await transaction.commit();
 
+            const payload = {
+                sub: user.id,
+                email: verification.email,
+            };
+
+            const newAccessToken = this.jwtService.sign(payload);
+
             this.logger.log(
                 `Email changed successfully for user: ${currentEmail}`,
             );
 
             return {
                 message: 'Email has been changed successfully.',
+                data: { newAccessToken: newAccessToken },
             };
         } catch (error) {
             await transaction.rollback();
