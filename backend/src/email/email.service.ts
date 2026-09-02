@@ -1,4 +1,7 @@
-import { RecurringPaymentBillingCycle, ReminderOffsetDays } from '@/common/enum';
+import {
+    RecurringPaymentBillingCycle,
+    ReminderOffsetDays,
+} from '@/common/enum';
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { Transporter } from 'nodemailer';
@@ -72,6 +75,24 @@ export class EmailService {
         });
     }
 
+    async sendChangeEmailVerificationCode(
+        email: string,
+        code: string,
+    ): Promise<void> {
+        await this.transporter.sendMail({
+            from: this.from,
+            to: email,
+            subject: 'Confirm your new email address',
+            html: `
+                <h2>Confirm your new email address</h2>
+                <p>We received a request to change the email address associated with your Mizara account to this email address.</p>
+                <p>Your verification code is:</p>
+                <h1>${code}</h1>
+                <p>This code will expire soon.</p>
+            `,
+        });
+    }
+
     async sendDueReminder(
         recipientEmail: string,
         recipientName: string,
@@ -118,7 +139,7 @@ export class EmailService {
         amount: string,
         trialEndDate: Date,
         remainingDays: ReminderOffsetDays,
-        billingCycle: RecurringPaymentBillingCycle
+        billingCycle: RecurringPaymentBillingCycle,
     ): Promise<void> {
         const formattedDate = format(trialEndDate, 'MMMM d, yyyy');
         const formattedTime = format(trialEndDate, 'h:mm a');

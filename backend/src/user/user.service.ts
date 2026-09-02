@@ -1,10 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { Sequelize, Transaction } from 'sequelize';
 import * as bcrypt from 'bcrypt';
 
 import { UserModel } from '@/user/models/user.model';
 import { UserStatus } from '@/common/enum';
+import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 
 @Injectable()
 export class UserService {
@@ -111,5 +112,75 @@ export class UserService {
             attributes: ['id', 'email', 'first_name', 'last_name'],
             where: { id },
         });
+    }
+
+    async findMe(currentUserId: string, currentUserEmail: string) {
+        this.logger.log(`Fetching user details for user: ${currentUserEmail}`);
+
+        const user = await this.findById(currentUserId);
+
+        this.logger.log(
+            `Fetched user details successfully for user: ${currentUserEmail}`,
+        );
+
+        return {
+            message: 'Fetched user details successfully',
+            data: user,
+        };
+    }
+
+    async updateProfile(
+        dto: UpdateUserProfileDto,
+        currentUserId: string,
+        currentUserEmail: string,
+    ) {
+        const transaction = await this.sequelize.transaction();
+        try {
+            this.logger.log(
+                `Updating user profile for user: ${currentUserEmail}`,
+            );
+
+            const user = await this.findById(currentUserId);
+
+            if (!user) {
+                this.logger.warn(`User not found: ${currentUserEmail}`);
+                throw new NotFoundException('User not found.');
+            }
+
+            await user.update(
+                {
+                    ...(dto.first_name !== undefined && {
+                        first_name: dto.first_name,
+                    }),
+                    ...(dto.last_name !== undefined && {
+                        last_name: dto.last_name,
+                    }),
+                },
+                { transaction },
+            );
+
+            await transaction.commit();
+
+            this.logger.log(
+                `Successfully updated user profile for user: ${currentUserEmail}`,
+            );
+
+            return {
+                message: 'Successfully updated user profile',
+            };
+        } catch (error) {
+            await transaction.rollback();
+
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+
+            this.logger.error(
+                `Error updating user profile for user: ${currentUserEmail}`,
+                error,
+            );
+
+            throw error;
+        }
     }
 }

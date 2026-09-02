@@ -15,6 +15,9 @@ import { UserStatus } from '@/common/enum';
 import { VerificationCodeModel } from '@/auth/models/verification-code.model';
 import { EmailService } from '@/email/email.service';
 import { VerificationCodeType } from '@/common/enum';
+import { ChangeEmailDto } from '@/auth/dto/change-email.dto';
+import { ChangePasswordDto } from '@/auth/dto/change-password.dto';
+import { VerifyChangeEmailDto } from './dto/verify-change-email.dto';
 
 @Injectable()
 export class AuthService {
@@ -140,6 +143,7 @@ export class AuthService {
         await this.verificationCodeModel.create(
             {
                 user_id: userId,
+                email: email,
                 code_hash: codeHash,
                 expires_at: expiresAt,
                 attempts: 0,
@@ -154,6 +158,11 @@ export class AuthService {
             await this.emailService.sendEmailVerificationCode(email, code);
         } else if (verificationType === VerificationCodeType.PasswordReset) {
             await this.emailService.sendPasswordResetCode(email, code);
+        } else if (verificationType === VerificationCodeType.ChangeEmail) {
+            await this.emailService.sendChangeEmailVerificationCode(
+                email,
+                code,
+            );
         }
 
         this.logger.log(`${verificationType} code sent to user: ${email}`);
@@ -451,6 +460,212 @@ export class AuthService {
 
             this.logger.error(
                 `Error resetting password for user: ${email}`,
+                error,
+            );
+            throw error;
+        }
+    }
+
+    async changeEmail(currentEmail: string, dto: ChangeEmailDto) {
+        const transaction = await this.sequelize.transaction();
+        try {
+            this.logger.log(`Changing email for user: ${currentEmail}`);
+
+            const user = await this.userService.findByEmail(currentEmail);
+
+            if (!user) {
+                this.logger.warn(`User not found for email: ${currentEmail}`);
+                throw new NotFoundException('User not found.');
+            }
+
+            if (
+                user.email.toLocaleLowerCase() ===
+                dto.new_email.toLocaleLowerCase()
+            ) {
+                this.logger.warn(
+                    `New email is the same as current email for user: ${currentEmail}`,
+                );
+                throw new BadRequestException(
+                    'New email cannot be the same as the current email.',
+                );
+            }
+
+            const isPasswordValid = await bcrypt.compare(
+                dto.password,
+                user.password,
+            );
+
+            if (!isPasswordValid) {
+                this.logger.warn(
+                    `Invalid password provided for user: ${currentEmail}`,
+                );
+                throw new BadRequestException('Invalid password.');
+            }
+
+            const existingUser = await this.userService.findByEmail(
+                dto.new_email,
+            );
+
+            if (existingUser) {
+                this.logger.warn(`Email already in use: ${dto.new_email}`);
+                throw new BadRequestException('Email is already in use.');
+            }
+
+            await this.createAndSendVerificationCode(
+                user.id,
+                dto.new_email,
+                VerificationCodeType.ChangeEmail,
+                transaction,
+            );
+
+            await transaction.commit();
+
+            this.logger.log(
+                `Change email verification code sent to new email: ${dto.new_email}`,
+            );
+
+            return {
+                message: `A verification code has been sent to ${dto.new_email}. Please verify to complete the email change.`,
+            };
+        } catch (error) {
+            await transaction.rollback();
+
+            if (
+                error instanceof BadRequestException ||
+                error instanceof NotFoundException
+            ) {
+                throw error;
+            }
+
+            this.logger.error(
+                `Error changing email for user: ${currentEmail}`,
+                error,
+            );
+            throw error;
+        }
+    }
+
+    async verifyChangeEmail(currentEmail: string, dto: VerifyChangeEmailDto) {
+        const transaction = await this.sequelize.transaction();
+        try {
+            this.logger.log(
+                `Verifying change email code for user: ${currentEmail}`,
+            );
+
+            const user = await this.userService.findByEmail(currentEmail);
+
+            if (!user) {
+                this.logger.warn(`User not found for email: ${currentEmail}`);
+                throw new NotFoundException('User not found.');
+            }
+
+            const verification = await this.validateVerificationCode(
+                user.id,
+                VerificationCodeType.ChangeEmail,
+                dto.code,
+            );
+
+            await user.update(
+                { email: verification.email, is_email_verified: true },
+                { transaction },
+            );
+
+            await verification.update({ used_at: new Date() }, { transaction });
+
+            await transaction.commit();
+
+            const payload = {
+                sub: user.id,
+                email: verification.email,
+            };
+
+            const newAccessToken = this.jwtService.sign(payload);
+
+            this.logger.log(
+                `Email changed successfully for user: ${currentEmail}`,
+            );
+
+            return {
+                message: 'Email has been changed successfully.',
+                data: { newAccessToken: newAccessToken },
+            };
+        } catch (error) {
+            await transaction.rollback();
+
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+
+            this.logger.error(
+                `Error verifying email change for user: ${currentEmail}`,
+                error,
+            );
+            throw error;
+        }
+    }
+
+    async changePassword(email: string, dto: ChangePasswordDto) {
+        const transaction = await this.sequelize.transaction();
+        try {
+            this.logger.log(`Changing password for user: ${email}`);
+
+            const user = await this.userService.findByEmail(email);
+
+            if (!user) {
+                this.logger.warn(`User not found for email: ${email}`);
+                throw new NotFoundException('User not found.');
+            }
+
+            const isPasswordValid = await bcrypt.compare(
+                dto.current_password,
+                user.password,
+            );
+
+            if (!isPasswordValid) {
+                this.logger.warn(
+                    `Invalid current password provided for user: ${email}`,
+                );
+                throw new BadRequestException(
+                    'Current password is incorrect.',
+                );
+            }
+
+            const isSamePassword = await bcrypt.compare(
+                dto.new_password,
+                user.password,
+            );
+
+            if (isSamePassword) {
+                this.logger.warn(
+                    `New password is the same as current password for user: ${email}`,
+                );
+                throw new BadRequestException(
+                    'New password cannot be the same as the current password.',
+                );
+            }
+
+            user.password = await bcrypt.hash(dto.new_password, 12);
+            await user.save({ transaction });
+
+            await transaction.commit();
+
+            this.logger.log(`Password changed successfully for user: ${email}`);
+
+            return {
+                message: 'Password has been changed successfully.',
+            };
+        } catch (error) {
+            await transaction.rollback();
+
+            if (
+                error instanceof BadRequestException ||
+                error instanceof NotFoundException
+            ) {
+                throw error;
+            }
+
+            this.logger.error(
+                `Error changing password for user: ${email}`,
                 error,
             );
             throw error;
