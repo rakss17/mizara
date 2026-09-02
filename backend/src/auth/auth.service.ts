@@ -16,6 +16,7 @@ import { VerificationCodeModel } from '@/auth/models/verification-code.model';
 import { EmailService } from '@/email/email.service';
 import { VerificationCodeType } from '@/common/enum';
 import { ChangeEmailDto } from '@/auth/dto/change-email.dto';
+import { ChangePasswordDto } from '@/auth/dto/change-password.dto';
 import { VerifyChangeEmailDto } from './dto/verify-change-email.dto';
 
 @Injectable()
@@ -597,6 +598,74 @@ export class AuthService {
 
             this.logger.error(
                 `Error verifying email change for user: ${currentEmail}`,
+                error,
+            );
+            throw error;
+        }
+    }
+
+    async changePassword(email: string, dto: ChangePasswordDto) {
+        const transaction = await this.sequelize.transaction();
+        try {
+            this.logger.log(`Changing password for user: ${email}`);
+
+            const user = await this.userService.findByEmail(email);
+
+            if (!user) {
+                this.logger.warn(`User not found for email: ${email}`);
+                throw new NotFoundException('User not found.');
+            }
+
+            const isPasswordValid = await bcrypt.compare(
+                dto.current_password,
+                user.password,
+            );
+
+            if (!isPasswordValid) {
+                this.logger.warn(
+                    `Invalid current password provided for user: ${email}`,
+                );
+                throw new BadRequestException(
+                    'Current password is incorrect.',
+                );
+            }
+
+            const isSamePassword = await bcrypt.compare(
+                dto.new_password,
+                user.password,
+            );
+
+            if (isSamePassword) {
+                this.logger.warn(
+                    `New password is the same as current password for user: ${email}`,
+                );
+                throw new BadRequestException(
+                    'New password cannot be the same as the current password.',
+                );
+            }
+
+            user.password = await bcrypt.hash(dto.new_password, 12);
+            await user.save({ transaction });
+
+            await transaction.commit();
+
+            this.logger.log(`Password changed successfully for user: ${email}`);
+
+            return {
+                message: 'Password has been changed successfully.',
+            };
+        } catch (error) {
+            await transaction.rollback();
+
+            if (
+                error instanceof BadRequestException ||
+                error instanceof NotFoundException
+            ) {
+                throw error;
+            }
+
+            this.logger.error(
+                `Error changing password for user: ${email}`,
                 error,
             );
             throw error;

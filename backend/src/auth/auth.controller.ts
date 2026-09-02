@@ -18,6 +18,7 @@ import { VerifyPasswordResetCodeDto } from '@/auth/dto/verify-password-reset-cod
 import { ResetPasswordDto } from '@/auth/dto/reset-password.dto';
 import { CurrentUser } from '@/auth/decorators/current-user.decorator';
 import { ChangeEmailDto } from '@/auth/dto/change-email.dto';
+import { ChangePasswordDto } from '@/auth/dto/change-password.dto';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import type { AuthenticatedUser } from '@/auth/types/authenticated-user.type';
 import { VerifyChangeEmailDto } from './dto/verify-change-email.dto';
@@ -99,5 +100,15 @@ export class AuthController {
         @Body() dto: VerifyChangeEmailDto,
     ) {
         return this.authService.verifyChangeEmail(user.email, dto);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('change-password')
+    @HttpCode(HttpStatus.OK)
+    async changePassword(
+        @CurrentUser() user: AuthenticatedUser,
+        @Body() dto: ChangePasswordDto,
+    ) {
+        return this.authService.changePassword(user.email, dto);
     }
 }
