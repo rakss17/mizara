@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerModule, ThrottlerGuard, seconds } from '@nestjs/throttler';
 
 import { AuthModule } from '@/auth/auth.module';
 import { UserModule } from '@/user/user.module';
@@ -18,10 +19,22 @@ import { TransformInterceptor } from '@/common/interceptors/transform.intercepto
             provide: APP_INTERCEPTOR,
             useClass: TransformInterceptor,
         },
+        {
+            provide: APP_GUARD,
+            useClass: ThrottlerGuard,
+        },
     ],
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
+        }),
+        ThrottlerModule.forRoot({
+            throttlers: [
+                {
+                    ttl: seconds(60),
+                    limit: 60,
+                },
+            ],
         }),
         SequelizeModule.forRootAsync({
             imports: [ConfigModule],
