@@ -7,6 +7,7 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { Throttle, seconds } from '@nestjs/throttler';
 
 import { AuthService } from '@/auth/auth.service';
 import { SignupDto } from '@/auth/dto/signup.dto';
@@ -28,6 +29,7 @@ import { VerifyChangeEmailDto } from './dto/verify-change-email.dto';
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
+    @Throttle({ default: { limit: 5, ttl: seconds(60) } })
     @Post('signup')
     @HttpCode(HttpStatus.CREATED)
     async signup(@Body() signupDto: SignupDto) {
@@ -39,12 +41,14 @@ export class AuthController {
         );
     }
 
+    @Throttle({ default: { limit: 5, ttl: seconds(60) } })
     @Post('signin')
     @HttpCode(HttpStatus.OK)
     async signin(@Body() signinDto: SigninDto) {
         return this.authService.signin(signinDto.email, signinDto.password);
     }
 
+    @Throttle({ default: { limit: 5, ttl: seconds(60) } })
     @Post('verify-email')
     @HttpCode(HttpStatus.OK)
     async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto) {
@@ -54,24 +58,28 @@ export class AuthController {
         );
     }
 
+    @Throttle({ default: { limit: 3, ttl: seconds(60) } })
     @Post('resend-verification-code')
     @HttpCode(HttpStatus.OK)
     async resendVerificationCode(@Body() dto: ResendVerificationCodeDto) {
         return this.authService.resendVerificationCode(dto.email);
     }
 
+    @Throttle({ default: { limit: 3, ttl: seconds(60) } })
     @Post('forgot-password')
     @HttpCode(HttpStatus.OK)
     async forgotPassword(@Body() dto: ForgotPasswordDto) {
         return this.authService.forgotPassword(dto.email);
     }
 
+    @Throttle({ default: { limit: 5, ttl: seconds(60) } })
     @Post('verify-password-reset-code')
     @HttpCode(HttpStatus.OK)
     async verifyPasswordResetCode(@Body() dto: VerifyPasswordResetCodeDto) {
         return this.authService.verifyPasswordResetCode(dto.email, dto.code);
     }
 
+    @Throttle({ default: { limit: 5, ttl: seconds(60) } })
     @Post('reset-password')
     @HttpCode(HttpStatus.OK)
     async resetPassword(@Body() dto: ResetPasswordDto) {
