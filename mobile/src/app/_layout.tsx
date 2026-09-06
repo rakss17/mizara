@@ -1,5 +1,12 @@
 import { Stack } from "expo-router";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 
 export default function RootLayout() {
-  return <Stack />;
+  return (
+    <KeyboardProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(auth)" />
+      </Stack>
+    </KeyboardProvider>
+  );
 }
