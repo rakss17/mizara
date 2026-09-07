@@ -4,6 +4,7 @@ import {
   Text,
   useWindowDimensions,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
@@ -15,14 +16,20 @@ import { FontWeights } from "@/styles/typography";
 import { Colors } from "@/styles/colors";
 import { AppField } from "@/components/AppInputField/AppField";
 import { AppInput } from "@/components/AppInputField/AppInput";
+import { useSignIn } from "@/services/auth/hooks";
 
 export default function SignIn() {
-  const { width, height } = useWindowDimensions();
   const FontSizes = useTypography();
+  const { width, height } = useWindowDimensions();
   const [data, setData] = useState({
     email: "",
     password: "",
   });
+  const { signIn, isPending, errorMessage } = useSignIn();
+
+  const handleSignIn = () => {
+    signIn({ email: data.email, password: data.password });
+  };
 
   return (
     // <KeyboardAwareScrollView
@@ -96,18 +103,37 @@ export default function SignIn() {
           { marginTop: height * 0.035, gap: height * 0.02 },
         ]}
       >
+        {errorMessage && (
+          <Text
+            style={{
+              color: Colors.error,
+              fontSize: FontSizes.small,
+              textAlign: "center",
+              width: width * 0.85,
+            }}
+          >
+            {errorMessage}
+          </Text>
+        )}
         <TouchableOpacity
+          onPress={handleSignIn}
+          disabled={isPending}
           style={{
             width: width * 0.85,
             paddingVertical: 15,
             backgroundColor: Colors.primary,
             borderRadius: 6,
             alignItems: "center",
+            opacity: isPending ? 0.7 : 1,
           }}
         >
-          <Text style={{ color: "white", fontWeight: FontWeights.bold }}>
-            Sign in
-          </Text>
+          {isPending ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text style={{ color: "white", fontWeight: FontWeights.bold }}>
+              Sign in
+            </Text>
+          )}
         </TouchableOpacity>
         <View
           style={{
