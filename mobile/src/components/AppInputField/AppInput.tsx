@@ -14,6 +14,7 @@ type AppInputProps = {
   autoComplete?: "email" | "password" | "off";
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   secureTextEntry?: boolean;
+  widthRatio?: number;
 };
 
 export const AppInput = ({
@@ -23,10 +24,13 @@ export const AppInput = ({
   autoComplete = "off",
   autoCapitalize = "none",
   secureTextEntry = false,
+  widthRatio = 0.85,
 }: AppInputProps) => {
-  const { width } = useWindowDimensions();
+  const { width: windowWidth } = useWindowDimensions();
   const FontSizes = useTypography();
   const [showPassword, setShowPassword] = useState(false);
+
+  const textInputWidth = windowWidth * widthRatio;
 
   return (
     <View
@@ -45,7 +49,7 @@ export const AppInput = ({
         style={{
           borderColor: Colors.border,
           borderWidth: 1,
-          width: width * 0.85,
+          width: textInputWidth,
           paddingLeft: 10,
           paddingVertical: 12,
           fontSize: FontSizes.small,
