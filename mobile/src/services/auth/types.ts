@@ -9,3 +9,15 @@ export type SignInResponse = {
     accessToken: string;
   };
 };
+
+export type SignUpPayload = {
+  first_name: string;
+  last_name: string;
+  email: string;
+  password: string;
+};
+
+export type SignUpResponse = {
+  statusCode: number;
+  message: string;
+};
