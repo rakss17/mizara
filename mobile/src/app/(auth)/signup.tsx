@@ -272,6 +272,7 @@ export default function SignUp() {
       )}
       <TouchableOpacity
         onPress={handleSubmit(onSubmit)}
+        disabled={isPending}
         style={{
           marginTop: height * 0.04,
           width: width * SCREEN_WIDTH_RATIO,
