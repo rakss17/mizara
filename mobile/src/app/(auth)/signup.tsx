@@ -1,9 +1,9 @@
-import { useState } from "react";
 import {
   View,
   Text,
   useWindowDimensions,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import Checkbox from "expo-checkbox";
@@ -19,12 +19,15 @@ import { AppField } from "@/components/AppInputField/AppField";
 import { AppInput } from "@/components/AppInputField/AppInput";
 import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 import { signUpSchema, type SignUpFormData } from "@/schemas/signup";
+import { useSignUp } from "@/services/auth/hooks";
 import ArrowLeft from "@/assets/icons/arrow-left.svg";
+import { SignUpPayload } from "@/services/auth/types";
 
 export default function SignUp() {
   const router = useRouter();
   const FontSizes = useTypography();
   const { width, height } = useWindowDimensions();
+  const { signUp, isPending, errorMessage } = useSignUp();
   const {
     control,
     handleSubmit,
@@ -41,7 +44,16 @@ export default function SignUp() {
     },
   });
 
-  const onSubmit = () => {};
+  const onSubmit = (data: SignUpFormData) => {
+    const payload: SignUpPayload = {
+      first_name: data.firstName,
+      last_name: data.lastName,
+      email: data.email,
+      password: data.password,
+    };
+
+    signUp(payload);
+  };
 
   return (
     <KeyboardAwareScrollView
@@ -246,6 +258,18 @@ export default function SignUp() {
           )}
         />
       </View>
+      {errorMessage && (
+        <Text
+          style={{
+            color: Colors.error,
+            fontSize: FontSizes.small,
+            textAlign: "center",
+            width: width * SCREEN_WIDTH_RATIO,
+          }}
+        >
+          {errorMessage}
+        </Text>
+      )}
       <TouchableOpacity
         onPress={handleSubmit(onSubmit)}
         style={{
@@ -257,9 +281,13 @@ export default function SignUp() {
           alignItems: "center",
         }}
       >
-        <Text style={{ color: "white", fontWeight: FontWeights.bold }}>
-          Sign up
-        </Text>
+        {isPending ? (
+          <ActivityIndicator color="white" />
+        ) : (
+          <Text style={{ color: "white", fontWeight: FontWeights.bold }}>
+            Sign up
+          </Text>
+        )}
       </TouchableOpacity>
     </KeyboardAwareScrollView>
   );
