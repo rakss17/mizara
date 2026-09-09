@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { Colors } from "./colors";
 
 export const Styles = StyleSheet.create({
   container: {
@@ -19,5 +20,9 @@ export const Styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+  },
+  link: {
+    textDecorationLine: "underline",
+    color: Colors.primary,
   },
 });

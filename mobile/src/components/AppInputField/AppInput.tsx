@@ -6,6 +6,7 @@ import EyeIcon from "@/assets/icons/eye.svg";
 import EyeOffIcon from "@/assets/icons/eye-off.svg";
 import { Colors } from "@/styles/colors";
 import { useTypography } from "@/hooks/useTypography";
+import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 
 type AppInputProps = {
   placeholder: string;
@@ -14,6 +15,8 @@ type AppInputProps = {
   autoComplete?: "email" | "password" | "off";
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   secureTextEntry?: boolean;
+  widthRatio?: number;
+  error?: boolean;
 };
 
 export const AppInput = ({
@@ -23,10 +26,14 @@ export const AppInput = ({
   autoComplete = "off",
   autoCapitalize = "none",
   secureTextEntry = false,
+  widthRatio = SCREEN_WIDTH_RATIO,
+  error,
 }: AppInputProps) => {
-  const { width } = useWindowDimensions();
+  const { width: windowWidth } = useWindowDimensions();
   const FontSizes = useTypography();
   const [showPassword, setShowPassword] = useState(false);
+
+  const textInputWidth = windowWidth * widthRatio;
 
   return (
     <View
@@ -43,9 +50,9 @@ export const AppInput = ({
         autoComplete={autoComplete}
         autoCapitalize={autoCapitalize}
         style={{
-          borderColor: Colors.border,
+          borderColor: error ? Colors.error : Colors.border,
           borderWidth: 1,
-          width: width * 0.85,
+          width: textInputWidth,
           paddingLeft: 10,
           paddingVertical: 12,
           fontSize: FontSizes.small,

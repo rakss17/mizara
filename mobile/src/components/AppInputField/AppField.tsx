@@ -9,10 +9,11 @@ import { Colors } from "@/styles/colors";
 
 type AppFieldProps = {
   label: string;
+  errorMessage?: string;
   children?: ReactNode;
 };
 
-export const AppField = ({ label, children }: AppFieldProps) => {
+export const AppField = ({ label, errorMessage, children }: AppFieldProps) => {
   const { height } = useWindowDimensions();
   const FontSizes = useTypography();
 
@@ -36,6 +37,17 @@ export const AppField = ({ label, children }: AppFieldProps) => {
         {label}
       </Text>
       {children}
+      {errorMessage && (
+        <Text
+          style={{
+            color: Colors.error,
+            fontSize: FontSizes.tiny,
+            fontWeight: FontWeights.medium,
+          }}
+        >
+          {errorMessage}
+        </Text>
+      )}
     </View>
   );
 };

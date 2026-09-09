@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { signInApi } from "@/services/auth/api";
+import { signInApi, signUpApi } from "@/services/auth/api";
 import { saveAccessToken } from "@/services/auth/token-storage";
 import { getErrorMessage } from "../get-error-message";
 
@@ -19,4 +19,18 @@ export const useSignIn = () => {
   const errorMessage = getErrorMessage(error);
 
   return { signIn, isPending, errorMessage };
+};
+
+export const useSignUp = () => {
+  const {
+    mutate: signUp,
+    isPending,
+    error,
+  } = useMutation({
+    mutationFn: signUpApi,
+  });
+
+  const errorMessage = getErrorMessage(error);
+
+  return { signUp, isPending, errorMessage };
 };

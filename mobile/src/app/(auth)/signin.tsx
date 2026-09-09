@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import { Link } from "expo-router";
 
 import Logo from "@/assets/icons/logo.svg";
 import GoogleLogo from "@/assets/icons/google-logo.svg";
@@ -17,6 +17,7 @@ import { Colors } from "@/styles/colors";
 import { AppField } from "@/components/AppInputField/AppField";
 import { AppInput } from "@/components/AppInputField/AppInput";
 import { useSignIn } from "@/services/auth/hooks";
+import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 
 export default function SignIn() {
   const FontSizes = useTypography();
@@ -32,12 +33,6 @@ export default function SignIn() {
   };
 
   return (
-    // <KeyboardAwareScrollView
-    //   contentContainerStyle={[
-    //     Styles.container,
-    //     { backgroundColor: Colors.background },
-    //   ]}
-    // >
     <View style={[Styles.container, { backgroundColor: Colors.background }]}>
       <View style={Styles.flexColumn}>
         <Logo width={60} height={60} />
@@ -109,7 +104,7 @@ export default function SignIn() {
               color: Colors.error,
               fontSize: FontSizes.small,
               textAlign: "center",
-              width: width * 0.85,
+              width: width * SCREEN_WIDTH_RATIO,
             }}
           >
             {errorMessage}
@@ -119,7 +114,7 @@ export default function SignIn() {
           onPress={handleSignIn}
           disabled={isPending}
           style={{
-            width: width * 0.85,
+            width: width * SCREEN_WIDTH_RATIO,
             paddingVertical: 15,
             backgroundColor: Colors.primary,
             borderRadius: 6,
@@ -139,7 +134,7 @@ export default function SignIn() {
           style={{
             flexDirection: "row",
             alignItems: "center",
-            width: width * 0.85,
+            width: width * SCREEN_WIDTH_RATIO,
             gap: 10,
           }}
         >
@@ -172,7 +167,7 @@ export default function SignIn() {
           style={[
             Styles.flexRow,
             {
-              width: width * 0.85,
+              width: width * SCREEN_WIDTH_RATIO,
               paddingVertical: 10,
               backgroundColor: "transparent",
               borderRadius: 6,
@@ -200,20 +195,21 @@ export default function SignIn() {
           >
             Don't have an account?
           </Text>
-          <TouchableOpacity>
-            <Text
-              style={{
-                color: Colors.primary,
-                fontSize: FontSizes.small,
-                fontWeight: FontWeights.bold,
-              }}
-            >
-              Sign up
-            </Text>
-          </TouchableOpacity>
+          <Link href="/signup" asChild>
+            <TouchableOpacity>
+              <Text
+                style={{
+                  color: Colors.primary,
+                  fontSize: FontSizes.small,
+                  fontWeight: FontWeights.bold,
+                }}
+              >
+                Sign up
+              </Text>
+            </TouchableOpacity>
+          </Link>
         </View>
       </View>
     </View>
-    // </KeyboardAwareScrollView>
   );
 }
