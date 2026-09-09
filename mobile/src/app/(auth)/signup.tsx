@@ -7,7 +7,9 @@ import {
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import Checkbox from "expo-checkbox";
-import { Link } from "expo-router";
+import { useRouter } from "expo-router";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useTypography } from "@/hooks/useTypography";
 import { Styles } from "@/styles/stylesheets";
@@ -16,29 +18,52 @@ import { Colors } from "@/styles/colors";
 import { AppField } from "@/components/AppInputField/AppField";
 import { AppInput } from "@/components/AppInputField/AppInput";
 import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
+import { signUpSchema, type SignUpFormData } from "@/schemas/signup";
+import ArrowLeft from "@/assets/icons/arrow-left.svg";
 
 export default function SignUp() {
+  const router = useRouter();
   const FontSizes = useTypography();
   const { width, height } = useWindowDimensions();
-  const [isAgreed, setIsAgreed] = useState(false);
-  const [data, setData] = useState({
-    email: "",
-    password: "",
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignUpFormData>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      isAgreed: false,
+    },
   });
+
+  const onSubmit = () => {};
 
   return (
     <KeyboardAwareScrollView
       contentContainerStyle={[
         Styles.container,
-        { backgroundColor: Colors.background },
+        {
+          backgroundColor: Colors.background,
+          justifyContent: "flex-start",
+          paddingTop: height * 0.015,
+        },
       ]}
     >
       <View style={{ width: width * SCREEN_WIDTH_RATIO, gap: height * 0.005 }}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <ArrowLeft />
+        </TouchableOpacity>
         <Text
           style={{
             fontSize: FontSizes.xxLarge,
             fontWeight: FontWeights.bold,
             color: Colors.textPrimary,
+            marginTop: height * 0.01,
           }}
         >
           Create your account
@@ -57,7 +82,7 @@ export default function SignUp() {
         style={[
           Styles.flexColumn,
           {
-            marginTop: height * 0.04,
+            marginTop: height * 0.025,
             gap: height * 0.015,
             width: width * SCREEN_WIDTH_RATIO,
           },
@@ -68,91 +93,161 @@ export default function SignUp() {
             Styles.flexRow,
             {
               gap: width * 0.02,
-            },
-          ]}
-        >
-          <AppField label="First name">
-            <AppInput
-              placeholder="Enter your first name"
-              value={data.email}
-              onChangeText={(text) => setData({ ...data, email: text })}
-              autoComplete="email"
-              widthRatio={0.415}
-            />
-          </AppField>
-          <AppField label="Last name">
-            <AppInput
-              placeholder="Enter your last name"
-              value={data.email}
-              onChangeText={(text) => setData({ ...data, email: text })}
-              autoComplete="email"
-              widthRatio={0.415}
-            />
-          </AppField>
-        </View>
-        <AppField label="Email">
-          <AppInput
-            placeholder="Enter your email address"
-            value={data.email}
-            onChangeText={(text) => setData({ ...data, email: text })}
-            autoComplete="email"
-          />
-        </AppField>
-        <AppField label="Password">
-          <AppInput
-            placeholder="Enter your password"
-            value={data.password}
-            onChangeText={(text) => setData({ ...data, password: text })}
-            autoComplete="password"
-            secureTextEntry
-          />
-        </AppField>
-        <AppField label="Confirm password">
-          <AppInput
-            placeholder="Confirm your password"
-            value={data.password}
-            onChangeText={(text) => setData({ ...data, password: text })}
-            autoComplete="password"
-            secureTextEntry
-          />
-        </AppField>
-        <View
-          style={[
-            Styles.flexRow,
-            {
-              marginTop: height * 0.005,
-              gap: 10,
               alignItems: "flex-start",
-              justifyContent: "flex-start",
             },
           ]}
         >
-          <Checkbox
-            style={{
-              width: 20,
-              height: 20,
-              borderColor: Colors.border,
-              borderWidth: 1,
-            }}
-            value={isAgreed}
-            onValueChange={setIsAgreed}
-            color={isAgreed ? Colors.primary : undefined}
+          <Controller
+            control={control}
+            name="firstName"
+            render={({ field: { value, onChange } }) => (
+              <AppField
+                label="First name"
+                errorMessage={errors.firstName?.message}
+              >
+                <AppInput
+                  placeholder="Enter your first name"
+                  value={value}
+                  onChangeText={onChange}
+                  widthRatio={0.44}
+                  error={!!errors.firstName}
+                  autoCapitalize="words"
+                />
+              </AppField>
+            )}
           />
-          <Text
-            style={{
-              flex: 1,
-              flexShrink: 1,
-              fontSize: FontSizes.small,
-              fontWeight: FontWeights.medium,
-              lineHeight: 20,
-            }}
-          >
-            I agree to the <Text style={Styles.link}>Terms of Service</Text> and{" "}
-            <Text style={Styles.link}>Privacy Policy</Text>.
-          </Text>
+
+          <Controller
+            control={control}
+            name="lastName"
+            render={({ field: { value, onChange } }) => (
+              <AppField
+                label="Last name"
+                errorMessage={errors.lastName?.message}
+              >
+                <AppInput
+                  placeholder="Enter your last name"
+                  value={value}
+                  onChangeText={onChange}
+                  widthRatio={0.44}
+                  error={!!errors.lastName}
+                  autoCapitalize="words"
+                />
+              </AppField>
+            )}
+          />
         </View>
+        <Controller
+          control={control}
+          name="email"
+          render={({ field: { value, onChange } }) => (
+            <AppField label="Email" errorMessage={errors.email?.message}>
+              <AppInput
+                placeholder="Enter your email address"
+                value={value}
+                onChangeText={onChange}
+                autoComplete="email"
+                error={!!errors.email}
+              />
+            </AppField>
+          )}
+        />
+        <Controller
+          control={control}
+          name="password"
+          render={({ field: { value, onChange } }) => (
+            <AppField label="Password" errorMessage={errors.password?.message}>
+              <AppInput
+                placeholder="Enter your password"
+                value={value}
+                onChangeText={onChange}
+                autoComplete="password"
+                secureTextEntry
+                error={!!errors.password}
+              />
+            </AppField>
+          )}
+        />
+        <Controller
+          control={control}
+          name="confirmPassword"
+          render={({ field: { value, onChange } }) => (
+            <AppField
+              label="Confirm password"
+              errorMessage={errors.confirmPassword?.message}
+            >
+              <AppInput
+                placeholder="Confirm your password"
+                value={value}
+                onChangeText={onChange}
+                autoComplete="password"
+                secureTextEntry
+                error={!!errors.confirmPassword}
+              />
+            </AppField>
+          )}
+        />
+        <Controller
+          control={control}
+          name="isAgreed"
+          render={({ field: { value, onChange } }) => (
+            <View style={[Styles.flexColumn, { alignItems: "flex-start" }]}>
+              <View
+                style={[
+                  Styles.flexRow,
+                  {
+                    marginTop: height * 0.005,
+                    gap: 10,
+                    alignItems: "flex-start",
+                    justifyContent: "flex-start",
+                  },
+                ]}
+              >
+                <Checkbox
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderColor: !!errors.isAgreed
+                      ? Colors.error
+                      : Colors.border,
+                    borderWidth: 1,
+                  }}
+                  value={value}
+                  onValueChange={onChange}
+                  color={value ? Colors.primary : undefined}
+                />
+                <Text
+                  style={{
+                    flex: 1,
+                    flexShrink: 1,
+                    fontSize: FontSizes.small,
+                    fontWeight: FontWeights.medium,
+                    lineHeight: 20,
+                  }}
+                >
+                  I agree to the{" "}
+                  <Text style={Styles.link}>Terms of Service</Text> and{" "}
+                  <Text style={Styles.link}>Privacy Policy</Text>.
+                </Text>
+              </View>
+              {!!errors.isAgreed && (
+                <Text
+                  style={{
+                    color: Colors.error,
+                    fontSize: FontSizes.tiny,
+                    fontWeight: FontWeights.medium,
+                    textAlign: "left",
+                  }}
+                >
+                  {errors.isAgreed?.message}
+                </Text>
+              )}
+            </View>
+          )}
+        />
       </View>
       <TouchableOpacity
+        onPress={handleSubmit(onSubmit)}
         style={{
           marginTop: height * 0.04,
           width: width * SCREEN_WIDTH_RATIO,
@@ -166,31 +261,6 @@ export default function SignUp() {
           Sign up
         </Text>
       </TouchableOpacity>
-
-      <View style={[Styles.flexRow, { gap: 5, marginTop: height * 0.04 }]}>
-        <Text
-          style={{
-            color: Colors.textSecondary,
-            fontSize: FontSizes.small,
-            fontWeight: FontWeights.semibold,
-          }}
-        >
-          Already have an account?
-        </Text>
-        <Link href="/signin" asChild>
-          <TouchableOpacity>
-            <Text
-              style={{
-                color: Colors.primary,
-                fontSize: FontSizes.small,
-                fontWeight: FontWeights.bold,
-              }}
-            >
-              Sign in
-            </Text>
-          </TouchableOpacity>
-        </Link>
-      </View>
     </KeyboardAwareScrollView>
   );
 }

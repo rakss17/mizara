@@ -1,1 +1,1 @@
-export const SCREEN_WIDTH_RATIO = 0.85;
+export const SCREEN_WIDTH_RATIO = 0.9;

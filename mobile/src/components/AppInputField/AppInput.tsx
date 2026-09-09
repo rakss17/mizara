@@ -6,6 +6,7 @@ import EyeIcon from "@/assets/icons/eye.svg";
 import EyeOffIcon from "@/assets/icons/eye-off.svg";
 import { Colors } from "@/styles/colors";
 import { useTypography } from "@/hooks/useTypography";
+import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 
 type AppInputProps = {
   placeholder: string;
@@ -15,6 +16,7 @@ type AppInputProps = {
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   secureTextEntry?: boolean;
   widthRatio?: number;
+  error?: boolean;
 };
 
 export const AppInput = ({
@@ -24,7 +26,8 @@ export const AppInput = ({
   autoComplete = "off",
   autoCapitalize = "none",
   secureTextEntry = false,
-  widthRatio = 0.85,
+  widthRatio = SCREEN_WIDTH_RATIO,
+  error,
 }: AppInputProps) => {
   const { width: windowWidth } = useWindowDimensions();
   const FontSizes = useTypography();
@@ -47,7 +50,7 @@ export const AppInput = ({
         autoComplete={autoComplete}
         autoCapitalize={autoCapitalize}
         style={{
-          borderColor: Colors.border,
+          borderColor: error ? Colors.error : Colors.border,
           borderWidth: 1,
           width: textInputWidth,
           paddingLeft: 10,
