@@ -12,6 +12,7 @@ import { RecurringPaymentModule } from './recurring-payment/recurring-payment.mo
 import { ReminderModule } from './reminder/reminder.module';
 import { CategoryModule } from './category/category.module';
 import { TransformInterceptor } from '@/common/interceptors/transform.interceptor';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
     providers: [
@@ -56,6 +57,7 @@ import { TransformInterceptor } from '@/common/interceptors/transform.intercepto
         RecurringPaymentModule,
         ReminderModule,
         CategoryModule,
+        DashboardModule,
     ],
 })
 export class AppModule {}
