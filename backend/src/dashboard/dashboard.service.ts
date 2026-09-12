@@ -101,15 +101,24 @@ export class DashboardService {
                     total_upcoming_this_week: String(upcomingPayments.length),
                     free_trials_ending: String(freeTrialsEnding.length),
                     total_monthly_spending: `P${totalMonthlySpending.toFixed(2)}`, // TODO: replace with actual currency sign
-                    upcoming_due: upcomingPayments.map((payment) => ({
-                        id: payment.id,
-                        name: payment.name,
-                        type: payment.type,
-                        amount: Number(payment.amount),
-                        currency: payment.currency,
-                        due_date: payment.due_date,
-                        icon: payment.icon,
-                    })),
+                    upcoming_due: upcomingPayments.map((payment) => {
+                        const dueDate = new Date(payment.due_date);
+                        const daysLeft = Math.round(
+                            (dueDate.getTime() - startOfToday.getTime()) /
+                                (1000 * 60 * 60 * 24),
+                        );
+
+                        return {
+                            id: payment.id,
+                            name: payment.name,
+                            type: payment.type,
+                            amount: Number(payment.amount),
+                            currency: payment.currency,
+                            due_date: payment.due_date,
+                            days_left: daysLeft,
+                            icon: payment.icon,
+                        };
+                    }),
                 },
             };
         } catch (error) {
