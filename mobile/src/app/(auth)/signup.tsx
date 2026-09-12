@@ -220,7 +220,7 @@ export default function SignUp() {
                     width: 20,
                     height: 20,
                     borderColor: !!errors.isAgreed
-                      ? Colors.error
+                      ? Colors.danger
                       : Colors.border,
                     borderWidth: 1,
                   }}
@@ -245,7 +245,7 @@ export default function SignUp() {
               {!!errors.isAgreed && (
                 <Text
                   style={{
-                    color: Colors.error,
+                    color: Colors.danger,
                     fontSize: FontSizes.tiny,
                     fontWeight: FontWeights.medium,
                     textAlign: "left",
@@ -261,7 +261,7 @@ export default function SignUp() {
       {errorMessage && (
         <Text
           style={{
-            color: Colors.error,
+            color: Colors.danger,
             fontSize: FontSizes.small,
             textAlign: "center",
             width: width * SCREEN_WIDTH_RATIO,
