@@ -116,6 +116,7 @@ export class DashboardService {
                             currency: payment.currency,
                             due_date: payment.due_date,
                             days_left: daysLeft,
+                            is_free_trial: payment.is_free_trial,
                             icon: payment.icon,
                         };
                     }),
