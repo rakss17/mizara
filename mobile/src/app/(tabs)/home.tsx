@@ -16,53 +16,20 @@ import { FontWeights } from "@/styles/typography";
 import { useTypography } from "@/hooks/useTypography";
 import { OverviewCard } from "@/components/OverviewCard";
 import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
+import { useOverview } from "@/services/dashboard/hooks";
 
-const mockUpcomingDues = [
-  {
-    id: 1,
-    name: "Disney +",
-    amount: "289",
-    currency: "P",
-    daysLeft: "Today",
-    isFreeTrial: false,
-  },
-  {
-    id: 2,
-    name: "Canva Pro",
-    amount: "299",
-    currency: "P",
-    daysLeft: "Tomorrow",
-    isFreeTrial: true,
-  },
-  {
-    id: 3,
-    name: "Spotify",
-    amount: "169",
-    currency: "P",
-    daysLeft: "3 days left",
-    isFreeTrial: false,
-  },
-  {
-    id: 4,
-    name: "Youtube Premium",
-    amount: "189",
-    currency: "P",
-    daysLeft: "5 days left",
-    isFreeTrial: true,
-  },
-  {
-    id: 5,
-    name: "Netflix",
-    amount: "249",
-    currency: "P",
-    daysLeft: "7 days left",
-    isFreeTrial: false,
-  },
-];
+const formatDaysLeft = (daysLeft: number) => {
+  if (daysLeft <= 0) return "Today";
+  if (daysLeft === 1) return "Tomorrow";
+  return `${daysLeft} days left`;
+};
 
 export default function Home() {
   const { width, height } = useWindowDimensions();
   const FontSizes = useTypography();
+  const { overview, errorMessage } = useOverview();
+
+  const upcomingDues = overview?.upcoming_due ?? [];
 
   return (
     <View
@@ -117,28 +84,28 @@ export default function Home() {
       >
         <OverviewCard
           title="Total Active Payments"
-          value="0"
+          value={overview?.total ?? "0"}
           backgroundColor={Colors.overviewBgBlue}
           color={Colors.overviewFontBlue}
           icon={<WalletCardsIcon color={Colors.primary} />}
         />
         <OverviewCard
           title="Upcoming This Week"
-          value="0"
+          value={overview?.total_upcoming_this_week ?? "0"}
           backgroundColor={Colors.overviewBgGreen}
           color={Colors.overviewFontGreen}
           icon={<CalendarDaysIcon />}
         />
         <OverviewCard
           title="Free Trials Ending"
-          value="0"
+          value={overview?.free_trials_ending ?? "0"}
           backgroundColor={Colors.overviewBgYellow}
           color={Colors.overviewFontYellow}
           icon={<HourglassIcon />}
         />
         <OverviewCard
           title="Monthly Spending"
-          value="0"
+          value={overview?.total_monthly_spending ?? "0"}
           backgroundColor={Colors.overviewBgPurple}
           color={Colors.overviewFontPurple}
           icon={<BanknoteIcon />}
@@ -179,7 +146,20 @@ export default function Home() {
             gap: 10,
           }}
         >
-          {mockUpcomingDues.map((dues) => (
+          {upcomingDues.length === 0 && (
+            <Text
+              style={{
+                fontSize: FontSizes.small,
+                fontWeight: FontWeights.medium,
+                color: Colors.textSecondary,
+                textAlign: "center",
+                paddingVertical: 10,
+              }}
+            >
+              No upcoming dues this week.
+            </Text>
+          )}
+          {upcomingDues.map((dues) => (
             <TouchableOpacity
               key={dues.id}
               style={[Styles.flexRow, { justifyContent: "space-between" }]}
@@ -206,7 +186,7 @@ export default function Home() {
                 >
                   {dues.name}
                 </Text>
-                {dues.isFreeTrial && (
+                {dues.is_free_trial && (
                   <View
                     style={{
                       padding: 3.5,
@@ -232,13 +212,10 @@ export default function Home() {
                   style={{
                     fontSize: FontSizes.small,
                     fontWeight: FontWeights.semibold,
-                    color:
-                      dues.daysLeft === "Today" || dues.daysLeft === "Tomorrow"
-                        ? Colors.danger
-                        : Colors.warning,
+                    color: dues.days_left <= 1 ? Colors.danger : Colors.warning,
                   }}
                 >
-                  {dues.daysLeft}
+                  {formatDaysLeft(dues.days_left)}
                 </Text>
                 <Text
                   style={{
