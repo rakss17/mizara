@@ -1,4 +1,5 @@
 import axios from "axios";
+import { router } from "expo-router";
 
 import {
   deleteAccessToken,
@@ -37,6 +38,16 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
+// Endpoints that are either unauthenticated or already part of the
+// refresh/logout flow itself — a 401 from these should never trigger a
+// refresh attempt or a redirect.
+const AUTH_ENDPOINTS = [
+  "/auth/signin",
+  "/auth/signup",
+  "/auth/refresh",
+  "/auth/logout",
+];
+
 let refreshPromise: Promise<string | null> | null = null;
 
 const refreshAccessToken = async () => {
@@ -68,7 +79,15 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status !== 401 || originalRequest._retry) {
+    const isAuthEndpoint = AUTH_ENDPOINTS.some((endpoint) =>
+      originalRequest?.url?.includes(endpoint),
+    );
+
+    if (
+      error.response?.status !== 401 ||
+      originalRequest._retry ||
+      isAuthEndpoint
+    ) {
       return Promise.reject(error);
     }
 
@@ -81,6 +100,10 @@ api.interceptors.response.use(
     const newAccessToken = await refreshPromise;
 
     if (!newAccessToken) {
+      // Refresh token is missing, expired, or revoked - the session is
+      // over, so bounce back to sign in instead of letting the caller
+      // surface a raw 401.
+      router.replace("/signin");
       return Promise.reject(error);
     }
 
