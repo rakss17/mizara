@@ -3,21 +3,25 @@ import {
     Injectable,
     Logger,
     NotFoundException,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import * as bcrypt from 'bcrypt';
-import { randomInt } from 'crypto';
+import { randomInt, randomBytes, randomUUID, createHash } from 'crypto';
 import { Sequelize, Transaction } from 'sequelize';
 
 import { UserService } from '@/user/user.service';
 import { UserStatus } from '@/common/enum';
 import { VerificationCodeModel } from '@/auth/models/verification-code.model';
+import { RefreshTokenModel } from '@/auth/models/refresh-token.model';
 import { EmailService } from '@/email/email.service';
 import { VerificationCodeType } from '@/common/enum';
 import { ChangeEmailDto } from '@/auth/dto/change-email.dto';
 import { ChangePasswordDto } from '@/auth/dto/change-password.dto';
 import { VerifyChangeEmailDto } from './dto/verify-change-email.dto';
+
+const REFRESH_TOKEN_TTL_DAYS = Number(process.env.REFRESH_TOKEN_TTL_DAYS) || 30;
 
 @Injectable()
 export class AuthService {
@@ -29,6 +33,8 @@ export class AuthService {
         private readonly emailService: EmailService,
         @InjectModel(VerificationCodeModel)
         private readonly verificationCodeModel: typeof VerificationCodeModel,
+        @InjectModel(RefreshTokenModel)
+        private readonly refreshTokenModel: typeof RefreshTokenModel,
         @InjectConnection()
         private readonly sequelize: Sequelize,
     ) {}
@@ -116,6 +122,9 @@ export class AuthService {
         };
 
         const accessToken = this.jwtService.sign(payload);
+        const { rawToken: refreshToken } = await this.issueRefreshToken(
+            validatedUser.data.id,
+        );
 
         this.logger.log(
             `User signed in successfully with email: ${validatedUser.data.email}`,
@@ -123,8 +132,149 @@ export class AuthService {
 
         return {
             message: `User ${validatedUser.data.email} signed in successfully`,
-            data: { accessToken },
+            data: { accessToken, refreshToken },
         };
+    }
+
+    private hashRefreshToken(token: string) {
+        return createHash('sha256').update(token).digest('hex');
+    }
+
+    private async issueRefreshToken(
+        userId: string,
+        familyId: string = randomUUID(),
+        transaction?: Transaction,
+    ) {
+        const rawToken = randomBytes(64).toString('hex');
+        const expiresAt = new Date(
+            Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
+        );
+
+        const refreshToken = await this.refreshTokenModel.create(
+            {
+                user_id: userId,
+                token_hash: this.hashRefreshToken(rawToken),
+                family_id: familyId,
+                expires_at: expiresAt,
+            },
+            transaction ? { transaction } : undefined,
+        );
+
+        return { rawToken, refreshToken };
+    }
+
+    async refreshTokens(rawToken: string) {
+        this.logger.log('Processing refresh token request');
+
+        const tokenHash = this.hashRefreshToken(rawToken);
+
+        const existingToken = await this.refreshTokenModel.findOne({
+            where: { token_hash: tokenHash },
+        });
+
+        if (!existingToken) {
+            this.logger.warn('Refresh token not found');
+            throw new UnauthorizedException('Invalid refresh token');
+        }
+
+        if (existingToken.revoked_at) {
+            this.logger.warn(
+                `Reuse of a rotated refresh token detected for user: ${existingToken.user_id}`,
+            );
+
+            await this.refreshTokenModel.update(
+                { revoked_at: new Date() },
+                {
+                    where: {
+                        family_id: existingToken.family_id,
+                        revoked_at: null,
+                    },
+                },
+            );
+
+            throw new UnauthorizedException(
+                'Refresh token reuse detected. All sessions have been revoked.',
+            );
+        }
+
+        if (existingToken.expires_at.getTime() < Date.now()) {
+            this.logger.warn(
+                `Refresh token expired for user: ${existingToken.user_id}`,
+            );
+            throw new UnauthorizedException('Refresh token has expired');
+        }
+
+        const user = await this.userService.findById(existingToken.user_id);
+
+        if (!user) {
+            this.logger.warn(
+                `User not found for refresh token: ${existingToken.user_id}`,
+            );
+            throw new UnauthorizedException('Invalid refresh token');
+        }
+
+        const transaction = await this.sequelize.transaction();
+
+        try {
+            const { rawToken: newRawToken, refreshToken: newRecord } =
+                await this.issueRefreshToken(
+                    user.id,
+                    existingToken.family_id,
+                    transaction,
+                );
+
+            existingToken.revoked_at = new Date();
+            existingToken.replaced_by_id = newRecord.id;
+            await existingToken.save({ transaction });
+
+            await transaction.commit();
+
+            const payload = { sub: user.id, email: user.email };
+            const accessToken = this.jwtService.sign(payload);
+
+            this.logger.log(
+                `Refresh token rotated successfully for user: ${user.email}`,
+            );
+
+            return {
+                message: 'Token refreshed successfully',
+                data: { accessToken, refreshToken: newRawToken },
+            };
+        } catch (error) {
+            await transaction.rollback();
+
+            this.logger.error(
+                `Error rotating refresh token for user: ${existingToken.user_id}`,
+                error,
+            );
+            throw error;
+        }
+    }
+
+    async logout(rawToken: string) {
+        const tokenHash = this.hashRefreshToken(rawToken);
+
+        const existingToken = await this.refreshTokenModel.findOne({
+            where: { token_hash: tokenHash },
+        });
+
+        if (existingToken && !existingToken.revoked_at) {
+            await this.refreshTokenModel.update(
+                { revoked_at: new Date() },
+                {
+                    where: {
+                        family_id: existingToken.family_id,
+                        revoked_at: null,
+                    },
+                },
+            );
+
+            this.logger.log(
+                `User logged out, refresh token family revoked for user: ${existingToken.user_id}`,
+            );
+        }
+
+        return { message: 'Logged out successfully' };
     }
 
     private async createAndSendVerificationCode(
@@ -625,9 +775,7 @@ export class AuthService {
                 this.logger.warn(
                     `Invalid current password provided for user: ${email}`,
                 );
-                throw new BadRequestException(
-                    'Current password is incorrect.',
-                );
+                throw new BadRequestException('Current password is incorrect.');
             }
 
             const isSamePassword = await bcrypt.compare(
