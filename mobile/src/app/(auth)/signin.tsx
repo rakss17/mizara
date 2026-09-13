@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 
 import Logo from "@/assets/icons/logo.svg";
 import GoogleLogo from "@/assets/icons/google-logo.svg";
@@ -20,17 +20,24 @@ import { useSignIn } from "@/services/auth/hooks";
 import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 
 export default function SignIn() {
+  const route = useRouter();
   const FontSizes = useTypography();
   const { width, height } = useWindowDimensions();
   const [data, setData] = useState({
     email: "",
     password: "",
   });
-  const { signIn, isPending, errorMessage } = useSignIn();
+  const { signIn, isPending, isSuccess, errorMessage } = useSignIn();
 
   const handleSignIn = () => {
     signIn({ email: data.email, password: data.password });
   };
+
+  useEffect(() => {
+    if (isSuccess) {
+      route.replace("/home");
+    }
+  }, [isSuccess]);
 
   return (
     <View style={[Styles.container, { backgroundColor: Colors.background }]}>
@@ -101,7 +108,7 @@ export default function SignIn() {
         {errorMessage && (
           <Text
             style={{
-              color: Colors.error,
+              color: Colors.danger,
               fontSize: FontSizes.small,
               textAlign: "center",
               width: width * SCREEN_WIDTH_RATIO,

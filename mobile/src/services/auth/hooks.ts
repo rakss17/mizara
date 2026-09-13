@@ -8,6 +8,7 @@ export const useSignIn = () => {
   const {
     mutate: signIn,
     isPending,
+    isSuccess,
     error,
   } = useMutation({
     mutationFn: signInApi,
@@ -18,7 +19,7 @@ export const useSignIn = () => {
 
   const errorMessage = getErrorMessage(error);
 
-  return { signIn, isPending, errorMessage };
+  return { signIn, isPending, isSuccess, errorMessage };
 };
 
 export const useSignUp = () => {
