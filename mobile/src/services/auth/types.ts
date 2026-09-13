@@ -7,7 +7,16 @@ export type SignInResponse = {
   message: string;
   data: {
     accessToken: string;
+    refreshToken: string;
   };
+};
+
+export type LogoutPayload = {
+  refresh_token: string;
+};
+
+export type LogoutResponse = {
+  message: string;
 };
 
 export type SignUpPayload = {

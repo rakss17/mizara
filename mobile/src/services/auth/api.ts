@@ -1,5 +1,7 @@
 import { api } from "@/services/api-client";
 import {
+  LogoutPayload,
+  LogoutResponse,
   SignInPayload,
   SignInResponse,
   SignUpPayload,
@@ -13,5 +15,10 @@ export const signInApi = async (payload: SignInPayload) => {
 
 export const signUpApi = async (payload: SignUpPayload) => {
   const { data } = await api.post<SignUpResponse>("/auth/signup", payload);
+  return data;
+};
+
+export const logoutApi = async (payload: LogoutPayload) => {
+  const { data } = await api.post<LogoutResponse>("/auth/logout", payload);
   return data;
 };

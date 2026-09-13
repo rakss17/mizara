@@ -1,7 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { signInApi, signUpApi } from "@/services/auth/api";
-import { saveAccessToken } from "@/services/auth/token-storage";
+import { logoutApi, signInApi, signUpApi } from "@/services/auth/api";
+import {
+  deleteAccessToken,
+  deleteRefreshToken,
+  getRefreshToken,
+  saveAccessToken,
+  saveRefreshToken,
+} from "@/services/auth/token-storage";
 import { getErrorMessage } from "../get-error-message";
 
 export const useSignIn = () => {
@@ -14,12 +20,37 @@ export const useSignIn = () => {
     mutationFn: signInApi,
     onSuccess: async ({ data }) => {
       await saveAccessToken(data.accessToken);
+      await saveRefreshToken(data.refreshToken);
     },
   });
 
   const errorMessage = getErrorMessage(error);
 
   return { signIn, isPending, isSuccess, errorMessage };
+};
+
+export const useSignOut = () => {
+  const {
+    mutate: signOut,
+    isPending,
+    error,
+  } = useMutation({
+    mutationFn: async () => {
+      const refreshToken = await getRefreshToken();
+
+      if (refreshToken) {
+        await logoutApi({ refresh_token: refreshToken });
+      }
+    },
+    onSettled: async () => {
+      await deleteAccessToken();
+      await deleteRefreshToken();
+    },
+  });
+
+  const errorMessage = getErrorMessage(error);
+
+  return { signOut, isPending, errorMessage };
 };
 
 export const useSignUp = () => {
