@@ -20,6 +20,7 @@ import { ResetPasswordDto } from '@/auth/dto/reset-password.dto';
 import { CurrentUser } from '@/auth/decorators/current-user.decorator';
 import { ChangeEmailDto } from '@/auth/dto/change-email.dto';
 import { ChangePasswordDto } from '@/auth/dto/change-password.dto';
+import { RefreshTokenDto } from '@/auth/dto/refresh-token.dto';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import type { AuthenticatedUser } from '@/auth/types/authenticated-user.type';
 import { VerifyChangeEmailDto } from './dto/verify-change-email.dto';
@@ -46,6 +47,20 @@ export class AuthController {
     @HttpCode(HttpStatus.OK)
     async signin(@Body() signinDto: SigninDto) {
         return this.authService.signin(signinDto.email, signinDto.password);
+    }
+
+    @Throttle({ default: { limit: 10, ttl: seconds(60) } })
+    @Post('refresh')
+    @HttpCode(HttpStatus.OK)
+    async refresh(@Body() dto: RefreshTokenDto) {
+        return this.authService.refreshTokens(dto.refresh_token);
+    }
+
+    @Throttle({ default: { limit: 10, ttl: seconds(60) } })
+    @Post('logout')
+    @HttpCode(HttpStatus.OK)
+    async logout(@Body() dto: RefreshTokenDto) {
+        return this.authService.logout(dto.refresh_token);
     }
 
     @Throttle({ default: { limit: 5, ttl: seconds(60) } })

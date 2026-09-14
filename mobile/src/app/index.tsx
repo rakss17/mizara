@@ -1,15 +1,18 @@
 import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
-import { getAccessToken } from "@/services/auth/token-storage";
+import { getRefreshToken } from "@/services/auth/token-storage";
 
 export default function Index() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
     const checkAuthentication = async () => {
-      const token = await getAccessToken();
+      // The refresh token is the real signal of an active session: it
+      // outlives the short-lived access token, which the api-client
+      // interceptor will silently renew on the first authenticated request.
+      const refreshToken = await getRefreshToken();
 
-      setIsAuthenticated(!!token);
+      setIsAuthenticated(!!refreshToken);
     };
 
     checkAuthentication();
