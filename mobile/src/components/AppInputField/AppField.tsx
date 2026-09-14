@@ -5,7 +5,7 @@ import { useWindowDimensions } from "react-native";
 import { useTypography } from "@/hooks/useTypography";
 import { Styles } from "@/styles/stylesheets";
 import { FontWeights } from "@/styles/typography";
-import { Colors } from "@/styles/colors";
+import { useTheme } from "@/contexts/ThemeContext";
 
 type AppFieldProps = {
   label: string;
@@ -16,6 +16,7 @@ type AppFieldProps = {
 export const AppField = ({ label, errorMessage, children }: AppFieldProps) => {
   const { height } = useWindowDimensions();
   const FontSizes = useTypography();
+  const { colors } = useTheme();
 
   return (
     <View
@@ -29,7 +30,7 @@ export const AppField = ({ label, errorMessage, children }: AppFieldProps) => {
     >
       <Text
         style={{
-          color: Colors.textPrimary,
+          color: colors.textPrimary,
           fontSize: FontSizes.medium,
           fontWeight: FontWeights.semibold,
         }}
@@ -40,7 +41,7 @@ export const AppField = ({ label, errorMessage, children }: AppFieldProps) => {
       {errorMessage && (
         <Text
           style={{
-            color: Colors.error,
+            color: colors.danger,
             fontSize: FontSizes.tiny,
             fontWeight: FontWeights.medium,
           }}

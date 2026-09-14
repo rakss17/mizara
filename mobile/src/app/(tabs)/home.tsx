@@ -11,7 +11,7 @@ import CalendarDaysIcon from "@/assets/icons/calendar-days.svg";
 import HourglassIcon from "@/assets/icons/hourglass.svg";
 import BanknoteIcon from "@/assets/icons/banknote.svg";
 import { Styles } from "@/styles/stylesheets";
-import { Colors } from "@/styles/colors";
+import { useTheme } from "@/contexts/ThemeContext";
 import { FontWeights } from "@/styles/typography";
 import { useTypography } from "@/hooks/useTypography";
 import { OverviewCard } from "@/components/OverviewCard";
@@ -27,6 +27,7 @@ const formatDaysLeft = (daysLeft: number) => {
 export default function Home() {
   const { width, height } = useWindowDimensions();
   const FontSizes = useTypography();
+  const { colors } = useTheme();
   const { overview, errorMessage } = useOverview();
 
   const upcomingDues = overview?.upcoming_due ?? [];
@@ -36,7 +37,7 @@ export default function Home() {
       style={[
         Styles.container,
         {
-          backgroundColor: Colors.background,
+          backgroundColor: colors.background,
           paddingTop: height * 0.01,
           justifyContent: "flex-start",
         },
@@ -55,7 +56,7 @@ export default function Home() {
         <View style={{ gap: 3 }}>
           <Text
             style={{
-              color: Colors.textPrimary,
+              color: colors.textPrimary,
               fontWeight: FontWeights.bold,
               fontSize: FontSizes.xLarge,
             }}
@@ -64,7 +65,7 @@ export default function Home() {
           </Text>
           <Text
             style={{
-              color: Colors.textSecondary,
+              color: colors.textSecondary,
               fontWeight: FontWeights.medium,
               fontSize: FontSizes.medium,
             }}
@@ -85,29 +86,29 @@ export default function Home() {
         <OverviewCard
           title="Total Active Payments"
           value={overview?.total ?? "0"}
-          backgroundColor={Colors.overviewBgBlue}
-          color={Colors.overviewFontBlue}
-          icon={<WalletCardsIcon color={Colors.primary} />}
+          backgroundColor={colors.overviewBgBlue}
+          color={colors.overviewFontBlue}
+          icon={<WalletCardsIcon color={colors.primary} />}
         />
         <OverviewCard
           title="Upcoming This Week"
           value={overview?.total_upcoming_this_week ?? "0"}
-          backgroundColor={Colors.overviewBgGreen}
-          color={Colors.overviewFontGreen}
+          backgroundColor={colors.overviewBgGreen}
+          color={colors.overviewFontGreen}
           icon={<CalendarDaysIcon />}
         />
         <OverviewCard
           title="Free Trials Ending"
           value={overview?.free_trials_ending ?? "0"}
-          backgroundColor={Colors.overviewBgYellow}
-          color={Colors.overviewFontYellow}
+          backgroundColor={colors.overviewBgYellow}
+          color={colors.overviewFontYellow}
           icon={<HourglassIcon />}
         />
         <OverviewCard
           title="Monthly Spending"
           value={overview?.total_monthly_spending ?? "0"}
-          backgroundColor={Colors.overviewBgPurple}
-          color={Colors.overviewFontPurple}
+          backgroundColor={colors.overviewBgPurple}
+          color={colors.overviewFontPurple}
           icon={<BanknoteIcon />}
         />
       </View>
@@ -117,7 +118,7 @@ export default function Home() {
         <View style={[Styles.flexRow, { justifyContent: "space-between" }]}>
           <Text
             style={{
-              color: Colors.textPrimary,
+              color: colors.textPrimary,
               fontWeight: FontWeights.bold,
               fontSize: FontSizes.medium,
             }}
@@ -127,7 +128,7 @@ export default function Home() {
           <TouchableOpacity>
             <Text
               style={{
-                color: Colors.primary,
+                color: colors.primary,
                 fontWeight: FontWeights.bold,
                 fontSize: FontSizes.small,
               }}
@@ -138,7 +139,7 @@ export default function Home() {
         </View>
         <View
           style={{
-            borderColor: Colors.border,
+            borderColor: colors.border,
             borderWidth: 1,
             padding: 10,
             borderRadius: 8,
@@ -151,7 +152,7 @@ export default function Home() {
               style={{
                 fontSize: FontSizes.small,
                 fontWeight: FontWeights.medium,
-                color: Colors.textSecondary,
+                color: colors.textSecondary,
                 textAlign: "center",
                 paddingVertical: 10,
               }}
@@ -174,14 +175,14 @@ export default function Home() {
                   },
                 ]}
               >
-                <WalletCardsIcon color={Colors.textMuted} />
+                <WalletCardsIcon color={colors.textMuted} />
                 <Text
                   numberOfLines={1}
                   ellipsizeMode="tail"
                   style={{
                     fontSize: FontSizes.small,
                     fontWeight: FontWeights.semibold,
-                    color: Colors.textPrimary,
+                    color: colors.textPrimary,
                   }}
                 >
                   {dues.name}
@@ -190,9 +191,9 @@ export default function Home() {
                   <View
                     style={{
                       padding: 3.5,
-                      borderColor: Colors.overviewFontYellow,
+                      borderColor: colors.overviewFontYellow,
                       borderWidth: 1,
-                      backgroundColor: Colors.overviewBgYellow,
+                      backgroundColor: colors.overviewBgYellow,
                       borderRadius: 4,
                     }}
                   >
@@ -212,7 +213,7 @@ export default function Home() {
                   style={{
                     fontSize: FontSizes.small,
                     fontWeight: FontWeights.semibold,
-                    color: dues.days_left <= 1 ? Colors.danger : Colors.warning,
+                    color: dues.days_left <= 1 ? colors.danger : colors.warning,
                   }}
                 >
                   {formatDaysLeft(dues.days_left)}
@@ -221,7 +222,7 @@ export default function Home() {
                   style={{
                     fontSize: FontSizes.small,
                     fontWeight: FontWeights.bold,
-                    color: Colors.textPrimary,
+                    color: colors.textPrimary,
                   }}
                 >
                   {dues.currency}

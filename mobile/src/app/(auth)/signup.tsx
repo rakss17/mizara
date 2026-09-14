@@ -14,7 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTypography } from "@/hooks/useTypography";
 import { Styles } from "@/styles/stylesheets";
 import { FontWeights } from "@/styles/typography";
-import { Colors } from "@/styles/colors";
+import { useTheme } from "@/contexts/ThemeContext";
 import { AppField } from "@/components/AppInputField/AppField";
 import { AppInput } from "@/components/AppInputField/AppInput";
 import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
@@ -26,6 +26,7 @@ import { SignUpPayload } from "@/services/auth/types";
 export default function SignUp() {
   const router = useRouter();
   const FontSizes = useTypography();
+  const { colors } = useTheme();
   const { width, height } = useWindowDimensions();
   const { signUp, isPending, errorMessage } = useSignUp();
   const {
@@ -60,7 +61,7 @@ export default function SignUp() {
       contentContainerStyle={[
         Styles.container,
         {
-          backgroundColor: Colors.background,
+          backgroundColor: colors.background,
           justifyContent: "flex-start",
           paddingTop: height * 0.015,
         },
@@ -74,7 +75,7 @@ export default function SignUp() {
           style={{
             fontSize: FontSizes.xxLarge,
             fontWeight: FontWeights.bold,
-            color: Colors.textPrimary,
+            color: colors.textPrimary,
             marginTop: height * 0.01,
           }}
         >
@@ -84,7 +85,7 @@ export default function SignUp() {
           style={{
             fontSize: FontSizes.medium,
             fontWeight: FontWeights.medium,
-            color: Colors.textSecondary,
+            color: colors.textSecondary,
           }}
         >
           Let's get you started
@@ -220,13 +221,13 @@ export default function SignUp() {
                     width: 20,
                     height: 20,
                     borderColor: !!errors.isAgreed
-                      ? Colors.danger
-                      : Colors.border,
+                      ? colors.danger
+                      : colors.border,
                     borderWidth: 1,
                   }}
                   value={value}
                   onValueChange={onChange}
-                  color={value ? Colors.primary : undefined}
+                  color={value ? colors.primary : undefined}
                 />
                 <Text
                   style={{
@@ -238,14 +239,20 @@ export default function SignUp() {
                   }}
                 >
                   I agree to the{" "}
-                  <Text style={Styles.link}>Terms of Service</Text> and{" "}
-                  <Text style={Styles.link}>Privacy Policy</Text>.
+                  <Text style={[Styles.link, { color: colors.primary }]}>
+                    Terms of Service
+                  </Text>{" "}
+                  and{" "}
+                  <Text style={[Styles.link, { color: colors.primary }]}>
+                    Privacy Policy
+                  </Text>
+                  .
                 </Text>
               </View>
               {!!errors.isAgreed && (
                 <Text
                   style={{
-                    color: Colors.danger,
+                    color: colors.danger,
                     fontSize: FontSizes.tiny,
                     fontWeight: FontWeights.medium,
                     textAlign: "left",
@@ -261,7 +268,7 @@ export default function SignUp() {
       {errorMessage && (
         <Text
           style={{
-            color: Colors.danger,
+            color: colors.danger,
             fontSize: FontSizes.small,
             textAlign: "center",
             width: width * SCREEN_WIDTH_RATIO,
@@ -277,7 +284,7 @@ export default function SignUp() {
           marginTop: height * 0.04,
           width: width * SCREEN_WIDTH_RATIO,
           paddingVertical: 15,
-          backgroundColor: Colors.primary,
+          backgroundColor: colors.primary,
           borderRadius: 6,
           alignItems: "center",
         }}

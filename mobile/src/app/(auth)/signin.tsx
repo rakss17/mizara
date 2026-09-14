@@ -13,7 +13,7 @@ import GoogleLogo from "@/assets/icons/google-logo.svg";
 import { useTypography } from "@/hooks/useTypography";
 import { Styles } from "@/styles/stylesheets";
 import { FontWeights } from "@/styles/typography";
-import { Colors } from "@/styles/colors";
+import { useTheme } from "@/contexts/ThemeContext";
 import { AppField } from "@/components/AppInputField/AppField";
 import { AppInput } from "@/components/AppInputField/AppInput";
 import { useSignIn } from "@/services/auth/hooks";
@@ -22,6 +22,7 @@ import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 export default function SignIn() {
   const route = useRouter();
   const FontSizes = useTypography();
+  const { colors } = useTheme();
   const { width, height } = useWindowDimensions();
   const [data, setData] = useState({
     email: "",
@@ -40,14 +41,21 @@ export default function SignIn() {
   }, [isSuccess]);
 
   return (
-    <View style={[Styles.container, { backgroundColor: Colors.background }]}>
+    <View
+      style={[
+        Styles.container,
+        {
+          backgroundColor: colors.background,
+        },
+      ]}
+    >
       <View style={Styles.flexColumn}>
         <Logo width={60} height={60} />
         <Text
           style={{
             fontSize: FontSizes.xxxLarge,
             fontWeight: FontWeights.bold,
-            color: Colors.primary,
+            color: colors.primary,
           }}
         >
           Mizara
@@ -56,7 +64,7 @@ export default function SignIn() {
           style={{
             fontSize: FontSizes.medium,
             fontWeight: FontWeights.medium,
-            color: Colors.textSecondary,
+            color: colors.textSecondary,
             width: width * 0.4,
             textAlign: "center",
           }}
@@ -91,7 +99,7 @@ export default function SignIn() {
               style={{
                 fontSize: FontSizes.tiny,
                 fontWeight: FontWeights.bold,
-                color: Colors.primary,
+                color: colors.primary,
               }}
             >
               Forgot password?
@@ -108,7 +116,7 @@ export default function SignIn() {
         {errorMessage && (
           <Text
             style={{
-              color: Colors.danger,
+              color: colors.danger,
               fontSize: FontSizes.small,
               textAlign: "center",
               width: width * SCREEN_WIDTH_RATIO,
@@ -123,7 +131,7 @@ export default function SignIn() {
           style={{
             width: width * SCREEN_WIDTH_RATIO,
             paddingVertical: 15,
-            backgroundColor: Colors.primary,
+            backgroundColor: colors.primary,
             borderRadius: 6,
             alignItems: "center",
             opacity: isPending ? 0.7 : 1,
@@ -149,13 +157,13 @@ export default function SignIn() {
             style={{
               flex: 1,
               height: 1,
-              backgroundColor: Colors.border,
+              backgroundColor: colors.border,
             }}
           />
 
           <Text
             style={{
-              color: Colors.textMuted,
+              color: colors.textMuted,
               fontSize: FontSizes.small,
             }}
           >
@@ -166,7 +174,7 @@ export default function SignIn() {
             style={{
               flex: 1,
               height: 1,
-              backgroundColor: Colors.border,
+              backgroundColor: colors.border,
             }}
           />
         </View>
@@ -179,14 +187,14 @@ export default function SignIn() {
               backgroundColor: "transparent",
               borderRadius: 6,
               borderWidth: 1,
-              borderColor: Colors.border,
+              borderColor: colors.border,
               gap: 8,
             },
           ]}
         >
           <GoogleLogo />
           <Text
-            style={{ color: Colors.textPrimary, fontWeight: FontWeights.bold }}
+            style={{ color: colors.textPrimary, fontWeight: FontWeights.bold }}
           >
             Sign in with Google
           </Text>
@@ -195,7 +203,7 @@ export default function SignIn() {
         <View style={[Styles.flexRow, { gap: 5, marginTop: height * 0.03 }]}>
           <Text
             style={{
-              color: Colors.textSecondary,
+              color: colors.textSecondary,
               fontSize: FontSizes.small,
               fontWeight: FontWeights.semibold,
             }}
@@ -206,7 +214,7 @@ export default function SignIn() {
             <TouchableOpacity>
               <Text
                 style={{
-                  color: Colors.primary,
+                  color: colors.primary,
                   fontSize: FontSizes.small,
                   fontWeight: FontWeights.bold,
                 }}
