@@ -1,5 +1,4 @@
 import { StyleSheet } from "react-native";
-import { Colors } from "./colors";
 
 export const Styles = StyleSheet.create({
   container: {
@@ -23,6 +22,5 @@ export const Styles = StyleSheet.create({
   },
   link: {
     textDecorationLine: "underline",
-    color: Colors.primary,
   },
 });

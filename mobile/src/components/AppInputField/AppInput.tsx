@@ -4,7 +4,7 @@ import { useWindowDimensions } from "react-native";
 
 import EyeIcon from "@/assets/icons/eye.svg";
 import EyeOffIcon from "@/assets/icons/eye-off.svg";
-import { Colors } from "@/styles/colors";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useTypography } from "@/hooks/useTypography";
 import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 
@@ -31,6 +31,7 @@ export const AppInput = ({
 }: AppInputProps) => {
   const { width: windowWidth } = useWindowDimensions();
   const FontSizes = useTypography();
+  const { colors } = useTheme();
   const [showPassword, setShowPassword] = useState(false);
 
   const textInputWidth = windowWidth * widthRatio;
@@ -46,17 +47,18 @@ export const AppInput = ({
         value={value}
         onChangeText={onChangeText}
         secureTextEntry={secureTextEntry && !showPassword}
-        placeholderTextColor={Colors.textMuted}
+        placeholderTextColor={colors.textMuted}
         autoComplete={autoComplete}
         autoCapitalize={autoCapitalize}
         style={{
-          borderColor: error ? Colors.error : Colors.border,
+          borderColor: error ? colors.danger : colors.border,
           borderWidth: 1,
           width: textInputWidth,
           paddingLeft: 10,
           paddingVertical: 12,
           fontSize: FontSizes.small,
           borderRadius: 6,
+          color: colors.textPrimary,
         }}
       />
       {secureTextEntry && (
