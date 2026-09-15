@@ -40,6 +40,9 @@ type RecurringPaymentsFilterModalProps = {
 
 const TYPE_OPTIONS: RecurringPaymentType[] = ["Subscription", "Bills"];
 
+export const hasActiveFilters = (filters: RecurringPaymentFilters) =>
+  Object.values(filters).some((value) => value !== undefined);
+
 const EMPTY_FILTERS: RecurringPaymentFilters = {};
 
 export const RecurringPaymentsFilterModal = ({
