@@ -28,6 +28,7 @@ import {
   hasActiveSort,
   type RecurringPaymentSort,
 } from "@/components/RecurringPaymentsSortMenu";
+import { FreeTrialBadge } from "@/components/FreeTrialBadge";
 
 // TODO: replace with categories fetched from GET /category once the
 // category service is wired up on mobile.
@@ -53,6 +54,7 @@ type RecurringPayment = {
   amount: string;
   due_date: string;
   status: string;
+  is_free_trial: boolean;
 };
 
 // TODO: replace with recurring payments fetched from GET /recurring-payment
@@ -67,6 +69,7 @@ const MOCK_RECURRING_PAYMENTS: RecurringPayment[] = [
     amount: "P289",
     due_date: "Sep. 15, 2026",
     status: "Due Today",
+    is_free_trial: false,
   },
   {
     id: "2",
@@ -77,6 +80,7 @@ const MOCK_RECURRING_PAYMENTS: RecurringPayment[] = [
     amount: "P549",
     due_date: "Sep. 18, 2026",
     status: "Due in 3 days",
+    is_free_trial: false,
   },
   {
     id: "3",
@@ -87,6 +91,7 @@ const MOCK_RECURRING_PAYMENTS: RecurringPayment[] = [
     amount: "P149",
     due_date: "Sep. 20, 2026",
     status: "Due in 5 days",
+    is_free_trial: true,
   },
   {
     id: "4",
@@ -97,6 +102,7 @@ const MOCK_RECURRING_PAYMENTS: RecurringPayment[] = [
     amount: "P2,340",
     due_date: "Sep. 10, 2026",
     status: "Overdue",
+    is_free_trial: false,
   },
   {
     id: "5",
@@ -107,6 +113,7 @@ const MOCK_RECURRING_PAYMENTS: RecurringPayment[] = [
     amount: "P1,699",
     due_date: "Sep. 25, 2026",
     status: "Due in 10 days",
+    is_free_trial: false,
   },
   {
     id: "6",
@@ -117,6 +124,7 @@ const MOCK_RECURRING_PAYMENTS: RecurringPayment[] = [
     amount: "P1,000",
     due_date: "Sep. 30, 2026",
     status: "Due in 15 days",
+    is_free_trial: false,
   },
   {
     id: "7",
@@ -127,6 +135,7 @@ const MOCK_RECURRING_PAYMENTS: RecurringPayment[] = [
     amount: "P15,000",
     due_date: "Oct. 1, 2026",
     status: "Due in 16 days",
+    is_free_trial: false,
   },
   {
     id: "8",
@@ -137,6 +146,7 @@ const MOCK_RECURRING_PAYMENTS: RecurringPayment[] = [
     amount: "P11,999",
     due_date: "Dec. 5, 2026",
     status: "Due in 81 days",
+    is_free_trial: true,
   },
 ];
 
@@ -298,15 +308,30 @@ export default function RecurringPayments() {
                 ]}
               >
                 <View>
-                  <Text
-                    style={{
-                      color: colors.textPrimary,
-                      fontWeight: FontWeights.semibold,
-                      fontSize: FontSizes.medium,
-                    }}
+                  <View
+                    style={[
+                      Styles.flexRow,
+                      {
+                        width: width * 0.35,
+                        gap: 5,
+                        justifyContent: "flex-start",
+                      },
+                    ]}
                   >
-                    {payment.name}
-                  </Text>
+                    <Text
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                      style={{
+                        color: colors.textPrimary,
+                        fontWeight: FontWeights.semibold,
+                        fontSize: FontSizes.medium,
+                      }}
+                    >
+                      {payment.name}
+                    </Text>
+                    {payment.is_free_trial && <FreeTrialBadge />}
+                  </View>
+
                   <Text
                     style={{
                       color: colors.textSecondary,
