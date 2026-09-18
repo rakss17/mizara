@@ -29,7 +29,7 @@ export const Badge = ({ variant }: BadgeProps) => {
         backgroundColor:
           variant === Variant.FreeTrial
             ? colors.overviewBgYellow
-            : colors.textMuted,
+            : colors.backgroundMuted,
         borderRadius: 4,
       }}
     >
