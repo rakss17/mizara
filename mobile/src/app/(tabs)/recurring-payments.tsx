@@ -28,7 +28,7 @@ import {
   hasActiveSort,
   type RecurringPaymentSort,
 } from "@/components/RecurringPaymentsSortMenu";
-import { FreeTrialBadge } from "@/components/FreeTrialBadge";
+import { Badge, Variant } from "@/components/Badge";
 import { useRecurringPayments } from "@/services/recurring-payment/hooks";
 import { useCategories } from "@/services/category/hooks";
 import type { RecurringPayment } from "@/services/recurring-payment/types";
@@ -259,7 +259,12 @@ export default function RecurringPayments() {
                     >
                       {payment.name}
                     </Text>
-                    {payment.is_free_trial && <FreeTrialBadge />}
+                    {payment.is_free_trial ? (
+                      <Badge variant={Variant.FreeTrial} />
+                    ) : null}
+                    {payment.is_archived ? (
+                      <Badge variant={Variant.Archived} />
+                    ) : null}
                   </View>
 
                   <Text
