@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Text,
   View,
   TouchableOpacity,
   useWindowDimensions,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 
 import NotificationIcon from "@/assets/icons/notification.svg";
@@ -20,7 +21,6 @@ import { SearchBar } from "@/components/SearchBar";
 import {
   RecurringPaymentsFilterModal,
   hasActiveFilters,
-  type FilterCategory,
   type RecurringPaymentFilters,
 } from "@/components/RecurringPaymentsFilterModal";
 import {
@@ -28,141 +28,57 @@ import {
   hasActiveSort,
   type RecurringPaymentSort,
 } from "@/components/RecurringPaymentsSortMenu";
-import { FreeTrialBadge } from "@/components/FreeTrialBadge";
+import { Badge, Variant } from "@/components/Badge";
+import { useRecurringPayments } from "@/services/recurring-payment/hooks";
+import { useCategories } from "@/services/category/hooks";
+import type { RecurringPayment } from "@/services/recurring-payment/types";
+import {
+  formatAmount,
+  formatDueDate,
+  formatDueStatus,
+  getDueStatusColor,
+} from "@/utils/recurring-payment";
 
-// TODO: replace with categories fetched from GET /category once the
-// category service is wired up on mobile.
-const MOCK_CATEGORIES: FilterCategory[] = [
-  { id: "streaming", name: "Streaming" },
-  { id: "utilities", name: "Utilities" },
-  { id: "insurance", name: "Insurance" },
-  { id: "housing-rent", name: "Housing & Rent" },
-  { id: "food-dining", name: "Food & Dining" },
-  { id: "transportation", name: "Transportation" },
-  { id: "health-fitness", name: "Health & Fitness" },
-  { id: "software-subscriptions", name: "Software & Subscriptions" },
-  { id: "entertainment", name: "Entertainment" },
-  { id: "other", name: "Other" },
-];
-
-type RecurringPayment = {
-  id: string;
-  name: string;
-  frequency: string;
-  category_id: string;
-  category: string;
-  amount: string;
-  due_date: string;
-  status: string;
-  is_free_trial: boolean;
-};
-
-// TODO: replace with recurring payments fetched from GET /recurring-payment
-// once the recurring payments service is wired up on mobile.
-const MOCK_RECURRING_PAYMENTS: RecurringPayment[] = [
-  {
-    id: "1",
-    name: "Disney +",
-    frequency: "Monthly",
-    category_id: "entertainment",
-    category: "Entertainment",
-    amount: "P289",
-    due_date: "Sep. 15, 2026",
-    status: "Due Today",
-    is_free_trial: false,
-  },
-  {
-    id: "2",
-    name: "Netflix",
-    frequency: "Monthly",
-    category_id: "streaming",
-    category: "Streaming",
-    amount: "P549",
-    due_date: "Sep. 18, 2026",
-    status: "Due in 3 days",
-    is_free_trial: false,
-  },
-  {
-    id: "3",
-    name: "Spotify Premium",
-    frequency: "Monthly",
-    category_id: "entertainment",
-    category: "Entertainment",
-    amount: "P149",
-    due_date: "Sep. 20, 2026",
-    status: "Due in 5 days",
-    is_free_trial: true,
-  },
-  {
-    id: "4",
-    name: "Meralco",
-    frequency: "Monthly",
-    category_id: "utilities",
-    category: "Utilities",
-    amount: "P2,340",
-    due_date: "Sep. 10, 2026",
-    status: "Overdue",
-    is_free_trial: false,
-  },
-  {
-    id: "5",
-    name: "PLDT Home Fiber",
-    frequency: "Monthly",
-    category_id: "utilities",
-    category: "Utilities",
-    amount: "P1,699",
-    due_date: "Sep. 25, 2026",
-    status: "Due in 10 days",
-    is_free_trial: false,
-  },
-  {
-    id: "6",
-    name: "Pag-IBIG MP2",
-    frequency: "Monthly",
-    category_id: "insurance",
-    category: "Insurance",
-    amount: "P1,000",
-    due_date: "Sep. 30, 2026",
-    status: "Due in 15 days",
-    is_free_trial: false,
-  },
-  {
-    id: "7",
-    name: "Condo Rent",
-    frequency: "Monthly",
-    category_id: "housing-rent",
-    category: "Housing & Rent",
-    amount: "P15,000",
-    due_date: "Oct. 1, 2026",
-    status: "Due in 16 days",
-    is_free_trial: false,
-  },
-  {
-    id: "8",
-    name: "Adobe Creative Cloud",
-    frequency: "Yearly",
-    category_id: "software-subscriptions",
-    category: "Software & Subscriptions",
-    amount: "P11,999",
-    due_date: "Dec. 5, 2026",
-    status: "Due in 81 days",
-    is_free_trial: true,
-  },
-];
+const SEARCH_DEBOUNCE_MS = 400;
+const PAGE_LIMIT = 100;
 
 export default function RecurringPayments() {
   const { width, height } = useWindowDimensions();
   const FontSizes = useTypography();
   const { colors } = useTheme();
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
   const [filters, setFilters] = useState<RecurringPaymentFilters>({});
   const [isSortMenuVisible, setIsSortMenuVisible] = useState(false);
   const [sort, setSort] = useState<RecurringPaymentSort>({});
+  const { categories } = useCategories();
+  const { recurringPayments, isPending, errorMessage } = useRecurringPayments({
+    page: 1,
+    limit: PAGE_LIMIT,
+    search: debouncedSearch || undefined,
+    sort_by: sort.sort_by,
+    sort_order: sort.sort_order,
+    ...filters,
+    is_archived: filters.is_archived ?? false,
+  });
 
-  const filteredPayments = MOCK_RECURRING_PAYMENTS.filter((payment) =>
-    payment.name.toLowerCase().includes(search.trim().toLowerCase()),
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(timeout);
+  }, [search]);
+
+  const categoryNameById = useMemo(
+    () => new Map(categories.map((category) => [category.id, category.name])),
+    [categories],
   );
+
+  const getCategoryName = (payment: RecurringPayment) =>
+    (payment.category_id && categoryNameById.get(payment.category_id)) ||
+    "Uncategorized";
 
   return (
     <View
@@ -270,7 +186,21 @@ export default function RecurringPayments() {
           },
         ]}
       >
-        {filteredPayments.length === 0 ? (
+        {isPending ? (
+          <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} />
+        ) : errorMessage ? (
+          <Text
+            style={{
+              color: colors.danger,
+              fontWeight: FontWeights.medium,
+              fontSize: FontSizes.small,
+              textAlign: "center",
+              marginTop: 20,
+            }}
+          >
+            {errorMessage}
+          </Text>
+        ) : recurringPayments.length === 0 ? (
           <Text
             style={{
               color: colors.textSecondary,
@@ -283,7 +213,7 @@ export default function RecurringPayments() {
             No recurring payments found.
           </Text>
         ) : (
-          filteredPayments.map((payment) => (
+          recurringPayments.map((payment) => (
             <TouchableOpacity
               key={payment.id}
               style={[
@@ -329,7 +259,12 @@ export default function RecurringPayments() {
                     >
                       {payment.name}
                     </Text>
-                    {payment.is_free_trial && <FreeTrialBadge />}
+                    {payment.is_free_trial ? (
+                      <Badge variant={Variant.FreeTrial} />
+                    ) : null}
+                    {payment.is_archived ? (
+                      <Badge variant={Variant.Archived} />
+                    ) : null}
                   </View>
 
                   <Text
@@ -339,7 +274,7 @@ export default function RecurringPayments() {
                       fontSize: FontSizes.tiny,
                     }}
                   >
-                    {payment.frequency}
+                    {payment.billing_cycle}
                   </Text>
                   <Text
                     style={{
@@ -348,7 +283,7 @@ export default function RecurringPayments() {
                       fontSize: FontSizes.tiny,
                     }}
                   >
-                    {payment.category}
+                    {getCategoryName(payment)}
                   </Text>
                 </View>
                 <View>
@@ -360,7 +295,7 @@ export default function RecurringPayments() {
                       textAlign: "right",
                     }}
                   >
-                    {payment.amount}
+                    {formatAmount(payment.amount)}
                   </Text>
                   <Text
                     style={{
@@ -370,17 +305,17 @@ export default function RecurringPayments() {
                       textAlign: "right",
                     }}
                   >
-                    {payment.due_date}
+                    {formatDueDate(payment.due_date)}
                   </Text>
                   <Text
                     style={{
-                      color: colors.textSecondary,
+                      color: getDueStatusColor(payment.due_date, colors),
                       fontWeight: FontWeights.medium,
                       fontSize: FontSizes.tiny,
                       textAlign: "right",
                     }}
                   >
-                    {payment.status}
+                    {formatDueStatus(payment.due_date)}
                   </Text>
                 </View>
               </View>
@@ -394,7 +329,7 @@ export default function RecurringPayments() {
         onClose={() => setIsFilterModalVisible(false)}
         filters={filters}
         onApply={setFilters}
-        categories={MOCK_CATEGORIES}
+        categories={categories}
       />
 
       <RecurringPaymentsSortMenu

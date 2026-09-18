@@ -17,7 +17,7 @@ import { useTypography } from "@/hooks/useTypography";
 import { OverviewCard } from "@/components/OverviewCard";
 import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 import { useOverview } from "@/services/dashboard/hooks";
-import { FreeTrialBadge } from "@/components/FreeTrialBadge";
+import { Badge, Variant } from "@/components/Badge";
 
 const formatDaysLeft = (daysLeft: number) => {
   if (daysLeft <= 0) return "Today";
@@ -188,7 +188,7 @@ export default function Home() {
                 >
                   {dues.name}
                 </Text>
-                {dues.is_free_trial && <FreeTrialBadge />}
+                {dues.is_free_trial && <Badge variant={Variant.FreeTrial} />}
               </View>
               <View style={[Styles.flexRow, { gap: 10 }]}>
                 <Text
