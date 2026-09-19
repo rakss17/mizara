@@ -1,3 +1,4 @@
+import { RecurringPaymentStatus } from "@/components/RecurringPaymentsFilterModal";
 import type { ThemeColors } from "@/styles/colors";
 
 const MONTH_ABBREVIATIONS = [
@@ -47,9 +48,14 @@ export const formatDueStatus = (dueDate: string) => {
   return `Due in ${daysLeft} days`;
 };
 
-export const getDueStatusColor = (dueDate: string, colors: ThemeColors) => {
+export const getDueStatusColor = (
+  dueDate: string,
+  colors: ThemeColors,
+  status: RecurringPaymentStatus,
+) => {
   const daysLeft = getDaysUntilDue(dueDate);
 
+  if (status === "Archived") return colors.textMuted;
   if (daysLeft <= 1) return colors.danger;
   if (daysLeft <= 7) return colors.warning;
   return colors.textSecondary;

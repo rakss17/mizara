@@ -10,6 +10,7 @@ export type RecurringPaymentSortBy = "due_date" | "amount" | "name";
 export type SortOrder = "ASC" | "DESC";
 
 export type RecurringPaymentSort = {
+  label?: string;
   sort_by?: RecurringPaymentSortBy;
   sort_order?: SortOrder;
 };
@@ -21,7 +22,6 @@ type SortMenuOption = {
 };
 
 const SORT_OPTIONS: SortMenuOption[] = [
-  { label: "Default" },
   { label: "Due Date: Earliest first", sort_by: "due_date", sort_order: "ASC" },
   { label: "Due Date: Latest first", sort_by: "due_date", sort_order: "DESC" },
   { label: "Amount: Low to High", sort_by: "amount", sort_order: "ASC" },
@@ -50,7 +50,11 @@ export const RecurringPaymentsSortMenu = ({
   const { colors } = useTheme();
 
   const handleSelect = (option: SortMenuOption) => {
-    onSelect({ sort_by: option.sort_by, sort_order: option.sort_order });
+    onSelect({
+      label: option.label,
+      sort_by: option.sort_by,
+      sort_order: option.sort_order,
+    });
     onClose();
   };
 

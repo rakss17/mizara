@@ -10,7 +10,8 @@ import {
 
 import NotificationIcon from "@/assets/icons/notification.svg";
 import FilterIcon from "@/assets/icons/filter.svg";
-import ArrowUpDownIcon from "@/assets/icons/arrow-up-down.svg";
+import ArrowUpIcon from "@/assets/icons/arrow-up.svg";
+import ArrowDownIcon from "@/assets/icons/arrow-down.svg";
 import WalletCardsIcon from "@/assets/icons/wallet-cards.svg";
 import { Styles } from "@/styles/stylesheets";
 import { useTypography } from "@/hooks/useTypography";
@@ -21,6 +22,7 @@ import { SearchBar } from "@/components/SearchBar";
 import {
   RecurringPaymentsFilterModal,
   hasActiveFilters,
+  STATUS_OPTIONS,
   type RecurringPaymentFilters,
 } from "@/components/RecurringPaymentsFilterModal";
 import {
@@ -51,7 +53,11 @@ export default function RecurringPayments() {
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
   const [filters, setFilters] = useState<RecurringPaymentFilters>({});
   const [isSortMenuVisible, setIsSortMenuVisible] = useState(false);
-  const [sort, setSort] = useState<RecurringPaymentSort>({});
+  const [sort, setSort] = useState<RecurringPaymentSort>({
+    label: "Due Date: Latest first",
+    sort_by: "due_date",
+    sort_order: "DESC",
+  });
   const { categories } = useCategories();
   const { recurringPayments, isPending, errorMessage } = useRecurringPayments({
     page: 1,
@@ -155,24 +161,94 @@ export default function RecurringPayments() {
             height={18}
           />
         </TouchableOpacity>
+      </View>
+      <View
+        style={[
+          Styles.flexRow,
+          {
+            marginTop: height * 0.01,
+            width: width * SCREEN_WIDTH_RATIO,
+            justifyContent: "space-between",
+          },
+        ]}
+      >
+        <View style={[Styles.flexRow, { gap: 5 }]}>
+          {STATUS_OPTIONS.map((status) => {
+            const isArchived = status === "Archived";
+            const isSelected = isArchived
+              ? filters.is_archived === true
+              : filters.is_archived !== true;
+
+            return (
+              <TouchableOpacity
+                key={status}
+                onPress={() => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    is_archived:
+                      prev.is_archived === isArchived ? undefined : isArchived,
+                  }));
+                }}
+                style={[
+                  Styles.flexRow,
+                  {
+                    padding: 15,
+                    backgroundColor: isSelected
+                      ? colors.primary
+                      : "transparent",
+                    borderRadius: 50,
+                    borderWidth: 1,
+                    borderColor: isSelected ? colors.primary : colors.border,
+                    gap: 8,
+                  },
+                ]}
+              >
+                <Text
+                  style={{
+                    fontSize: FontSizes.small,
+                    color: isSelected ? colors.surface : colors.textSecondary,
+                    fontWeight: FontWeights.medium,
+                  }}
+                >
+                  {status}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
         <TouchableOpacity
           onPress={() => setIsSortMenuVisible(true)}
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 6,
-            borderWidth: 1,
-            borderColor: hasActiveSort(sort) ? colors.primary : colors.border,
-            backgroundColor: colors.surface,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          style={[
+            Styles.flexRow,
+            {
+              padding: 10,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: colors.border,
+              backgroundColor: colors.surface,
+              gap: 2,
+            },
+          ]}
         >
-          <ArrowUpDownIcon
-            color={hasActiveSort(sort) ? colors.primary : colors.textMuted}
-            width={18}
-            height={18}
-          />
+          <Text
+            style={{
+              fontSize: FontSizes.small,
+              color: colors.textSecondary,
+              fontWeight: FontWeights.medium,
+            }}
+          >
+            Sort: {sort.label?.split(":")[0]}
+          </Text>
+          {sort.sort_order === "DESC" ? (
+            <ArrowDownIcon
+              color={colors.textSecondary}
+              width={16}
+              height={16}
+            />
+          ) : (
+            <ArrowUpIcon color={colors.textSecondary} width={16} height={16} />
+          )}
         </TouchableOpacity>
       </View>
 
@@ -309,13 +385,21 @@ export default function RecurringPayments() {
                   </Text>
                   <Text
                     style={{
-                      color: getDueStatusColor(payment.due_date, colors),
+                      color: getDueStatusColor(
+                        payment.due_date,
+                        colors,
+                        payment.is_archived ? "Archived" : "Active",
+                      ),
                       fontWeight: FontWeights.medium,
                       fontSize: FontSizes.tiny,
                       textAlign: "right",
                     }}
                   >
-                    {formatDueStatus(payment.due_date)}
+                    {payment.is_archived ? (
+                      ""
+                    ) : (
+                      <>{formatDueStatus(payment.due_date)}</>
+                    )}
                   </Text>
                 </View>
               </View>

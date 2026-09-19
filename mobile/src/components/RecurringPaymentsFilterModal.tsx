@@ -17,6 +17,8 @@ import { useTypography } from "@/hooks/useTypography";
 
 export type RecurringPaymentType = "Subscription" | "Bills";
 
+export type RecurringPaymentStatus = "Active" | "Archived";
+
 export type RecurringPaymentFilters = {
   type?: RecurringPaymentType;
   is_archived?: boolean;
@@ -40,8 +42,12 @@ type RecurringPaymentsFilterModalProps = {
 
 const TYPE_OPTIONS: RecurringPaymentType[] = ["Subscription", "Bills"];
 
+export const STATUS_OPTIONS: RecurringPaymentStatus[] = ["Active", "Archived"];
+
 export const hasActiveFilters = (filters: RecurringPaymentFilters) =>
-  Object.values(filters).some((value) => value !== undefined);
+  Object.values(filters).some(
+    (value) => value !== filters.is_archived && value !== undefined,
+  );
 
 const EMPTY_FILTERS: RecurringPaymentFilters = {};
 
@@ -196,11 +202,6 @@ export const RecurringPaymentsFilterModal = ({
                 label="Only free trial"
                 checked={!!draft.is_free_trial}
                 onToggle={() => toggleBoolean("is_free_trial")}
-              />
-              <FilterCheckboxRow
-                label="Only archived"
-                checked={!!draft.is_archived}
-                onToggle={() => toggleBoolean("is_archived")}
               />
             </FilterSection>
           </ScrollView>
