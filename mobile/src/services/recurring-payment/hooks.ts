@@ -34,7 +34,10 @@ export const useCreateRecurringPayment = () => {
     mutationFn: createRecurringPaymentApi,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["recurring-payments", "dashboard-overview"],
+        queryKey: ["recurring-payments"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-overview"],
       });
     },
   });
