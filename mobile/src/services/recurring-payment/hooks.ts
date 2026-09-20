@@ -7,9 +7,7 @@ import {
 import { getErrorMessage } from "@/services/get-error-message";
 import { FindAllRecurringPaymentParams } from "./types";
 
-export const useRecurringPayments = (
-  params: FindAllRecurringPaymentParams,
-) => {
+export const useRecurringPayments = (params: FindAllRecurringPaymentParams) => {
   const { data, isPending, error } = useQuery({
     queryKey: ["recurring-payments", params],
     queryFn: () => getRecurringPaymentsApi(params),
@@ -35,7 +33,9 @@ export const useCreateRecurringPayment = () => {
   } = useMutation({
     mutationFn: createRecurringPaymentApi,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["recurring-payments"] });
+      queryClient.invalidateQueries({
+        queryKey: ["recurring-payments", "dashboard-overview"],
+      });
     },
   });
 
