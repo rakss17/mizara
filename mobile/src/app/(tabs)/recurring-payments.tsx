@@ -13,6 +13,7 @@ import FilterIcon from "@/assets/icons/filter.svg";
 import ArrowUpIcon from "@/assets/icons/arrow-up.svg";
 import ArrowDownIcon from "@/assets/icons/arrow-down.svg";
 import WalletCardsIcon from "@/assets/icons/wallet-cards.svg";
+import PlusIcon from "@/assets/icons/plus.svg";
 import { Styles } from "@/styles/stylesheets";
 import { useTypography } from "@/hooks/useTypography";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -422,6 +423,27 @@ export default function RecurringPayments() {
         value={sort}
         onSelect={setSort}
       />
+
+      <TouchableOpacity
+        style={{
+          position: "absolute",
+          right: (width * (1 - SCREEN_WIDTH_RATIO)) / 2,
+          bottom: height * 0.03,
+          width: 60,
+          height: 60,
+          borderRadius: 30,
+          backgroundColor: colors.primary,
+          alignItems: "center",
+          justifyContent: "center",
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.2,
+          shadowRadius: 4,
+          elevation: 4,
+        }}
+      >
+        <PlusIcon color={colors.surface} />
+      </TouchableOpacity>
     </View>
   );
 }
