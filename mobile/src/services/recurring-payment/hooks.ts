@@ -1,6 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { getRecurringPaymentsApi } from "@/services/recurring-payment/api";
+import {
+  createRecurringPaymentApi,
+  getRecurringPaymentsApi,
+} from "@/services/recurring-payment/api";
 import { getErrorMessage } from "@/services/get-error-message";
 import { FindAllRecurringPaymentParams } from "./types";
 
@@ -20,4 +23,23 @@ export const useRecurringPayments = (
     isPending,
     errorMessage,
   };
+};
+
+export const useCreateRecurringPayment = () => {
+  const queryClient = useQueryClient();
+
+  const {
+    mutate: createRecurringPayment,
+    isPending,
+    error,
+  } = useMutation({
+    mutationFn: createRecurringPaymentApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["recurring-payments"] });
+    },
+  });
+
+  const errorMessage = getErrorMessage(error);
+
+  return { createRecurringPayment, isPending, errorMessage };
 };

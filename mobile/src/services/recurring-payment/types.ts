@@ -52,3 +52,23 @@ export type FindAllRecurringPaymentResponse = {
     totalPages: number;
   };
 };
+
+export type CreateRecurringPaymentPayload = {
+  name: string;
+  type: RecurringPaymentType;
+  description?: string;
+  amount: number;
+  currency?: string;
+  billing_cycle: RecurringPaymentBillingCycle;
+  is_auto_renew: boolean;
+  is_archived: boolean;
+  is_free_trial: boolean;
+  icon?: string;
+  due_date: string;
+  category_id?: string;
+};
+
+export type CreateRecurringPaymentResponse = {
+  message: string;
+  data: { id: string };
+};
