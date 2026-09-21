@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { TextInput, TouchableOpacity, View } from "react-native";
+import {
+  TextInput,
+  TouchableOpacity,
+  View,
+  type KeyboardTypeOptions,
+} from "react-native";
 import { useWindowDimensions } from "react-native";
 
 import EyeIcon from "@/assets/icons/eye.svg";
@@ -17,6 +22,7 @@ type AppInputProps = {
   secureTextEntry?: boolean;
   widthRatio?: number;
   error?: boolean;
+  keyboardType?: KeyboardTypeOptions;
 };
 
 export const AppInput = ({
@@ -28,6 +34,7 @@ export const AppInput = ({
   secureTextEntry = false,
   widthRatio = SCREEN_WIDTH_RATIO,
   error,
+  keyboardType,
 }: AppInputProps) => {
   const { width: windowWidth } = useWindowDimensions();
   const FontSizes = useTypography();
@@ -60,6 +67,7 @@ export const AppInput = ({
           borderRadius: 6,
           color: colors.textPrimary,
         }}
+        keyboardType={keyboardType}
       />
       {secureTextEntry && (
         <TouchableOpacity

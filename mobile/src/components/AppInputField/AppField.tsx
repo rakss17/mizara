@@ -30,7 +30,7 @@ export const AppField = ({ label, errorMessage, children }: AppFieldProps) => {
     >
       <Text
         style={{
-          color: colors.textPrimary,
+          color: colors.textSecondary,
           fontSize: FontSizes.medium,
           fontWeight: FontWeights.semibold,
         }}

@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
+import { useRouter } from "expo-router";
 
 import NotificationIcon from "@/assets/icons/notification.svg";
 import FilterIcon from "@/assets/icons/filter.svg";
@@ -46,6 +47,7 @@ const SEARCH_DEBOUNCE_MS = 400;
 const PAGE_LIMIT = 100;
 
 export default function RecurringPayments() {
+  const router = useRouter();
   const { width, height } = useWindowDimensions();
   const FontSizes = useTypography();
   const { colors } = useTheme();
@@ -425,6 +427,7 @@ export default function RecurringPayments() {
       />
 
       <TouchableOpacity
+        onPress={() => router.push("/recurring-payments/add")}
         style={{
           position: "absolute",
           right: (width * (1 - SCREEN_WIDTH_RATIO)) / 2,
