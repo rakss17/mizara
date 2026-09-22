@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import Checkbox from "expo-checkbox";
 
+import CloseIcon from "@/assets/icons/x.svg";
 import { Styles } from "@/styles/stylesheets";
 import { FontWeights } from "@/styles/typography";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -138,26 +139,19 @@ export const RecurringPaymentsFilterModal = ({
               },
             ]}
           >
+            <TouchableOpacity style={{ width: 22 }} onPress={onClose}>
+              <CloseIcon width={20} height={20} color={colors.textPrimary} />
+            </TouchableOpacity>
             <Text
               style={{
                 color: colors.textPrimary,
                 fontWeight: FontWeights.bold,
-                fontSize: FontSizes.large,
+                fontSize: FontSizes.medium,
               }}
             >
               Filters
             </Text>
-            <TouchableOpacity onPress={onClose}>
-              <Text
-                style={{
-                  color: colors.textSecondary,
-                  fontWeight: FontWeights.medium,
-                  fontSize: FontSizes.medium,
-                }}
-              >
-                Close
-              </Text>
-            </TouchableOpacity>
+            <View style={{ width: 24 }} />
           </View>
 
           <ScrollView
@@ -165,7 +159,12 @@ export const RecurringPaymentsFilterModal = ({
             showsVerticalScrollIndicator={false}
           >
             <FilterSection title="Type">
-              <View style={[Styles.flexRow, { gap: 10, flexWrap: "wrap" }]}>
+              <View
+                style={[
+                  Styles.flexRow,
+                  { gap: 10, flexWrap: "wrap", justifyContent: "flex-start" },
+                ]}
+              >
                 {TYPE_OPTIONS.map((type) => (
                   <FilterChip
                     key={type}
@@ -179,7 +178,12 @@ export const RecurringPaymentsFilterModal = ({
 
             {categories.length > 0 && (
               <FilterSection title="Category">
-                <View style={[Styles.flexRow, { gap: 10, flexWrap: "wrap" }]}>
+                <View
+                  style={[
+                    Styles.flexRow,
+                    { gap: 10, flexWrap: "wrap", justifyContent: "flex-start" },
+                  ]}
+                >
                   {categories.map((category) => (
                     <FilterChip
                       key={category.id}

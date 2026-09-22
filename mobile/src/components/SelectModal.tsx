@@ -67,8 +67,8 @@ export const SelectModal = ({
               },
             ]}
           >
-            <TouchableOpacity style={{ width: 24 }} onPress={onClose}>
-              <CloseIcon color={colors.textPrimary} />
+            <TouchableOpacity style={{ width: 22 }} onPress={onClose}>
+              <CloseIcon width={20} height={20} color={colors.textPrimary} />
             </TouchableOpacity>
             <Text
               style={{
