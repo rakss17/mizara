@@ -57,9 +57,9 @@ export default function RecurringPayments() {
   const [filters, setFilters] = useState<RecurringPaymentFilters>({});
   const [isSortMenuVisible, setIsSortMenuVisible] = useState(false);
   const [sort, setSort] = useState<RecurringPaymentSort>({
-    label: "Due Date: Latest first",
+    label: "Due Date: Earliest first",
     sort_by: "due_date",
-    sort_order: "DESC",
+    sort_order: "ASC",
   });
   const { categories } = useCategories();
   const { recurringPayments, isPending, errorMessage } = useRecurringPayments({
@@ -306,7 +306,11 @@ export default function RecurringPayments() {
                 },
               ]}
             >
-              <WalletCardsIcon color={colors.textMuted} />
+              <WalletCardsIcon
+                color={
+                  !payment.is_archived ? colors.textSecondary : colors.textMuted
+                }
+              />
               <View
                 style={[
                   Styles.flexRow,
