@@ -295,6 +295,12 @@ export default function RecurringPayments() {
           recurringPayments.map((payment) => (
             <TouchableOpacity
               key={payment.id}
+              onPress={() =>
+                router.push({
+                  pathname: "/recurring-payments/[id]",
+                  params: { id: payment.id },
+                })
+              }
               style={[
                 Styles.flexRow,
                 {
