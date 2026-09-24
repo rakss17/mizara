@@ -5,6 +5,7 @@ export default function RecurringPaymentsLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="add" options={{ presentation: "modal" }} />
       <Stack.Screen name="[id]" />
+      <Stack.Screen name="edit/[id]" options={{ presentation: "modal" }} />
     </Stack>
   );
 }
