@@ -370,7 +370,7 @@ export default function RecurringPaymentDetails() {
               <Text style={{ color: "white", fontWeight: FontWeights.bold }}>
                 {recurringPayment.is_archived
                   ? "Reactivate"
-                  : "Mark as Cancelled"}
+                  : "Mark as Cancelled/Archive"}
               </Text>
             )}
           </TouchableOpacity>
