@@ -51,6 +51,16 @@ export class RecurringPaymentController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Get(':id')
+    @HttpCode(HttpStatus.OK)
+    async findOne(
+        @CurrentUser() user: AuthenticatedUser,
+        @Param('id', ParseUUIDPipe) id: string,
+    ) {
+        return this.recurringPaymentService.findOne(id, user.id, user.email);
+    }
+
+    @UseGuards(JwtAuthGuard)
     @Patch(':id')
     @HttpCode(HttpStatus.OK)
     async update(

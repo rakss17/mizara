@@ -72,3 +72,19 @@ export type CreateRecurringPaymentResponse = {
   message: string;
   data: { id: string };
 };
+
+export type FindOneRecurringPaymentResponse = {
+  message: string;
+  data: RecurringPayment;
+};
+
+export type UpdateRecurringPaymentPayload =
+  Partial<CreateRecurringPaymentPayload>;
+
+export type UpdateRecurringPaymentResponse = {
+  message: string;
+};
+
+export type DeleteRecurringPaymentResponse = {
+  message: string;
+};

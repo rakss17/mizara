@@ -171,6 +171,27 @@ export class RecurringPaymentService {
         }
     }
 
+    async findOne(id: string, currentUserId: string, currentUserEmail: string) {
+        this.logger.log(
+            `Fetching recurring payment ${id} for user: ${currentUserEmail}`,
+        );
+
+        const recurringPayment = await this.findByIdAndOwnerId(
+            id,
+            currentUserId,
+            currentUserEmail,
+        );
+
+        this.logger.log(
+            `Fetched recurring payment ${id} successfully for user: ${currentUserEmail}`,
+        );
+
+        return {
+            message: 'Fetched recurring payment successfully',
+            data: recurringPayment,
+        };
+    }
+
     async update(
         id: string,
         dto: UpdateRecurringPaymentDto,
