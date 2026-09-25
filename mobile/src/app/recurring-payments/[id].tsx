@@ -11,6 +11,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ArrowLeftIcon from "@/assets/icons/arrow-left.svg";
+import SquarePenIcon from "@/assets/icons/square-pen.svg";
 import WalletCardsIcon from "@/assets/icons/wallet-cards.svg";
 import { useTypography } from "@/hooks/useTypography";
 import { Styles } from "@/styles/stylesheets";
@@ -151,7 +152,21 @@ export default function RecurringPaymentDetails() {
         >
           Payment Details
         </Text>
-        <View style={{ width: 24 }} />
+        {recurringPayment ? (
+          <TouchableOpacity
+            style={{ width: 24 }}
+            onPress={() =>
+              router.push({
+                pathname: "/recurring-payments/edit/[id]",
+                params: { id: recurringPayment.id },
+              })
+            }
+          >
+            <SquarePenIcon color={colors.textPrimary} width={22} height={22} />
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: 24 }} />
+        )}
       </View>
 
       {isPending ? (
