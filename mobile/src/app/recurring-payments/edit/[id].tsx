@@ -1,10 +1,4 @@
-import {
-  ActivityIndicator,
-  Text,
-  TouchableOpacity,
-  View,
-  useWindowDimensions,
-} from "react-native";
+import { Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
@@ -14,6 +8,7 @@ import { Styles } from "@/styles/stylesheets";
 import { FontWeights } from "@/styles/typography";
 import { useTheme } from "@/contexts/ThemeContext";
 import { RecurringPaymentForm } from "@/components/RecurringPaymentForm";
+import { RecurringPaymentFormSkeleton } from "@/components/Skeleton";
 import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 import type { CreateRecurringPaymentFormData } from "@/schemas/recurring-payment";
 import {
@@ -94,7 +89,9 @@ export default function EditRecurringPayment() {
       </View>
 
       {isLoading ? (
-        <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} />
+        <View style={{ width: width * SCREEN_WIDTH_RATIO }}>
+          <RecurringPaymentFormSkeleton />
+        </View>
       ) : loadErrorMessage || !recurringPayment ? (
         <Text
           style={{

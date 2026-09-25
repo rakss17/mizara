@@ -33,6 +33,7 @@ import {
   type RecurringPaymentSort,
 } from "@/components/RecurringPaymentsSortMenu";
 import { Badge, Variant } from "@/components/Badge";
+import { RecurringPaymentListSkeleton } from "@/components/Skeleton";
 import { useRecurringPayments } from "@/services/recurring-payment/hooks";
 import { useCategories } from "@/services/category/hooks";
 import type { RecurringPayment } from "@/services/recurring-payment/types";
@@ -262,7 +263,14 @@ export default function RecurringPayments() {
       </View>
 
       {isPending ? (
-        <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} />
+        <View
+          style={{
+            width: width * SCREEN_WIDTH_RATIO,
+            paddingVertical: height * 0.02,
+          }}
+        >
+          <RecurringPaymentListSkeleton />
+        </View>
       ) : errorMessage ? (
         <Text
           style={{
