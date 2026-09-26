@@ -19,6 +19,7 @@ import { FontWeights } from "@/styles/typography";
 import { useTheme } from "@/contexts/ThemeContext";
 import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 import { Badge, Variant } from "@/components/Badge";
+import { RecurringPaymentDetailSkeleton } from "@/components/Skeleton";
 import {
   useDeleteRecurringPayment,
   useRecurringPayment,
@@ -170,7 +171,9 @@ export default function RecurringPaymentDetails() {
       </View>
 
       {isPending ? (
-        <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} />
+        <View style={{ width: width * SCREEN_WIDTH_RATIO }}>
+          <RecurringPaymentDetailSkeleton />
+        </View>
       ) : errorMessage || !recurringPayment ? (
         <Text
           style={{

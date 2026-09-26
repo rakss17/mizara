@@ -4,7 +4,7 @@ import {
   View,
   TouchableOpacity,
   useWindowDimensions,
-  ScrollView,
+  FlatList,
   ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -33,6 +33,7 @@ import {
   type RecurringPaymentSort,
 } from "@/components/RecurringPaymentsSortMenu";
 import { Badge, Variant } from "@/components/Badge";
+import { RecurringPaymentListSkeleton } from "@/components/Skeleton";
 import { useRecurringPayments } from "@/services/recurring-payment/hooks";
 import { useCategories } from "@/services/category/hooks";
 import type { RecurringPayment } from "@/services/recurring-payment/types";
@@ -44,7 +45,7 @@ import {
 } from "@/utils/recurring-payment";
 
 const SEARCH_DEBOUNCE_MS = 400;
-const PAGE_LIMIT = 100;
+const PAGE_LIMIT = 10;
 
 export default function RecurringPayments() {
   const router = useRouter();
@@ -62,8 +63,14 @@ export default function RecurringPayments() {
     sort_order: "ASC",
   });
   const { categories } = useCategories();
-  const { recurringPayments, isPending, errorMessage } = useRecurringPayments({
-    page: 1,
+  const {
+    recurringPayments,
+    isPending,
+    errorMessage,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useRecurringPayments({
     limit: PAGE_LIMIT,
     search: debouncedSearch || undefined,
     sort_by: sort.sort_by,
@@ -255,46 +262,65 @@ export default function RecurringPayments() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        contentContainerStyle={[
-          Styles.flexColumn,
-          {
+      {isPending ? (
+        <View
+          style={{
             width: width * SCREEN_WIDTH_RATIO,
+            paddingVertical: height * 0.02,
+          }}
+        >
+          <RecurringPaymentListSkeleton />
+        </View>
+      ) : errorMessage ? (
+        <Text
+          style={{
+            color: colors.danger,
+            fontWeight: FontWeights.medium,
+            fontSize: FontSizes.small,
+            textAlign: "center",
+            marginTop: 20,
+          }}
+        >
+          {errorMessage}
+        </Text>
+      ) : (
+        <FlatList
+          data={recurringPayments}
+          keyExtractor={(payment) => payment.id}
+          contentContainerStyle={{
             gap: 10,
             paddingVertical: height * 0.02,
-          },
-        ]}
-      >
-        {isPending ? (
-          <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} />
-        ) : errorMessage ? (
-          <Text
-            style={{
-              color: colors.danger,
-              fontWeight: FontWeights.medium,
-              fontSize: FontSizes.small,
-              textAlign: "center",
-              marginTop: 20,
-            }}
-          >
-            {errorMessage}
-          </Text>
-        ) : recurringPayments.length === 0 ? (
-          <Text
-            style={{
-              color: colors.textSecondary,
-              fontWeight: FontWeights.medium,
-              fontSize: FontSizes.small,
-              textAlign: "center",
-              marginTop: 20,
-            }}
-          >
-            No recurring payments found.
-          </Text>
-        ) : (
-          recurringPayments.map((payment) => (
+            width: width * SCREEN_WIDTH_RATIO,
+          }}
+          onEndReached={() => {
+            if (hasNextPage && !isFetchingNextPage) {
+              fetchNextPage();
+            }
+          }}
+          onEndReachedThreshold={0.5}
+          ListEmptyComponent={
+            <Text
+              style={{
+                color: colors.textSecondary,
+                fontWeight: FontWeights.medium,
+                fontSize: FontSizes.small,
+                textAlign: "center",
+                marginTop: 20,
+              }}
+            >
+              No recurring payments found.
+            </Text>
+          }
+          ListFooterComponent={
+            isFetchingNextPage ? (
+              <ActivityIndicator
+                color={colors.primary}
+                style={{ marginVertical: 10 }}
+              />
+            ) : null
+          }
+          renderItem={({ item: payment }) => (
             <TouchableOpacity
-              key={payment.id}
               onPress={() =>
                 router.push({
                   pathname: "/recurring-payments/[id]",
@@ -417,9 +443,9 @@ export default function RecurringPayments() {
                 </View>
               </View>
             </TouchableOpacity>
-          ))
-        )}
-      </ScrollView>
+          )}
+        />
+      )}
 
       <RecurringPaymentsFilterModal
         visible={isFilterModalVisible}
