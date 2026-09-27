@@ -26,6 +26,11 @@ import {
   useUpdateRecurringPayment,
 } from "@/services/recurring-payment/hooks";
 import { useCategories } from "@/services/category/hooks";
+import { useReminderSettings } from "@/services/reminder-settings/hooks";
+import {
+  REMINDER_CHANNEL_LABELS,
+  REMINDER_OFFSET_DAY_LABELS,
+} from "@/schemas/recurring-payment";
 import {
   formatAmount,
   formatDueDate,
@@ -42,6 +47,7 @@ export default function RecurringPaymentDetails() {
   const insets = useSafeAreaInsets();
   const { categories } = useCategories();
   const { recurringPayment, isPending, errorMessage } = useRecurringPayment(id);
+  const { reminderSettings } = useReminderSettings(id);
   const {
     updateRecurringPayment,
     isPending: isUpdating,
@@ -116,6 +122,24 @@ export default function RecurringPaymentDetails() {
           label: "Created",
           value: formatDueDate(recurringPayment.created_at),
         },
+        ...(reminderSettings
+          ? [
+              {
+                label: "Notification Channels",
+                value: reminderSettings.channels
+                  .map((channel) => REMINDER_CHANNEL_LABELS[channel])
+                  .join(", "),
+              },
+              {
+                label: "Remind me",
+                value: reminderSettings.remind_before_days
+                  .slice()
+                  .sort((a, b) => b - a)
+                  .map((days) => REMINDER_OFFSET_DAY_LABELS[days])
+                  .join(", "),
+              },
+            ]
+          : []),
       ]
     : [];
 

@@ -12,14 +12,26 @@ import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 import type { CreateRecurringPaymentFormData } from "@/schemas/recurring-payment";
 import { useCreateRecurringPayment } from "@/services/recurring-payment/hooks";
 import type { CreateRecurringPaymentPayload } from "@/services/recurring-payment/types";
+import { useUpsertReminderSettings } from "@/services/reminder-settings/hooks";
 
 export default function AddRecurringPayment() {
   const router = useRouter();
   const FontSizes = useTypography();
   const { colors } = useTheme();
   const { width, height } = useWindowDimensions();
-  const { createRecurringPayment, isPending, errorMessage } =
-    useCreateRecurringPayment();
+  const {
+    createRecurringPayment,
+    isPending: isCreating,
+    errorMessage: createErrorMessage,
+  } = useCreateRecurringPayment();
+  const {
+    upsertReminderSettings,
+    isPending: isSavingReminders,
+    errorMessage: reminderErrorMessage,
+  } = useUpsertReminderSettings();
+
+  const isPending = isCreating || isSavingReminders;
+  const errorMessage = createErrorMessage ?? reminderErrorMessage;
 
   const onSubmit = (data: CreateRecurringPaymentFormData) => {
     const payload: CreateRecurringPaymentPayload = {
@@ -37,7 +49,19 @@ export default function AddRecurringPayment() {
     };
 
     createRecurringPayment(payload, {
-      onSuccess: () => router.back(),
+      onSuccess: ({ data: created }) => {
+        upsertReminderSettings(
+          {
+            recurringPaymentId: created.id,
+            payload: {
+              is_enabled: true,
+              channels: data.reminder_channels,
+              remind_before_days: data.reminder_remind_before_days,
+            },
+          },
+          { onSuccess: () => router.back() },
+        );
+      },
     });
   };
 
@@ -90,6 +114,8 @@ export default function AddRecurringPayment() {
           is_free_trial: false,
           due_date: undefined as unknown as Date,
           category_id: "",
+          reminder_channels: [],
+          reminder_remind_before_days: [],
         }}
         onSubmit={onSubmit}
         isPending={isPending}
