@@ -16,6 +16,10 @@ import {
   useUpdateRecurringPayment,
 } from "@/services/recurring-payment/hooks";
 import type { UpdateRecurringPaymentPayload } from "@/services/recurring-payment/types";
+import {
+  useReminderSettings,
+  useUpsertReminderSettings,
+} from "@/services/reminder-settings/hooks";
 
 export default function EditRecurringPayment() {
   const router = useRouter();
@@ -25,11 +29,25 @@ export default function EditRecurringPayment() {
   const { width, height } = useWindowDimensions();
   const {
     recurringPayment,
-    isPending: isLoading,
+    isPending: isPaymentLoading,
     errorMessage: loadErrorMessage,
   } = useRecurringPayment(id);
-  const { updateRecurringPayment, isPending, errorMessage } =
-    useUpdateRecurringPayment();
+  const { reminderSettings, isPending: isReminderLoading } =
+    useReminderSettings(id);
+  const {
+    updateRecurringPayment,
+    isPending: isUpdating,
+    errorMessage: updateErrorMessage,
+  } = useUpdateRecurringPayment();
+  const {
+    upsertReminderSettings,
+    isPending: isSavingReminders,
+    errorMessage: upsertReminderErrorMessage,
+  } = useUpsertReminderSettings();
+
+  const isLoading = isPaymentLoading || isReminderLoading;
+  const isPending = isUpdating || isSavingReminders;
+  const errorMessage = updateErrorMessage ?? upsertReminderErrorMessage;
 
   const onSubmit = (data: CreateRecurringPaymentFormData) => {
     const payload: UpdateRecurringPaymentPayload = {
@@ -46,7 +64,21 @@ export default function EditRecurringPayment() {
 
     updateRecurringPayment(
       { id, payload },
-      { onSuccess: () => router.back() },
+      {
+        onSuccess: () => {
+          upsertReminderSettings(
+            {
+              recurringPaymentId: id,
+              payload: {
+                is_enabled: true,
+                channels: data.reminder_channels,
+                remind_before_days: data.reminder_remind_before_days,
+              },
+            },
+            { onSuccess: () => router.back() },
+          );
+        },
+      },
     );
   };
 
@@ -116,6 +148,8 @@ export default function EditRecurringPayment() {
             is_free_trial: recurringPayment.is_free_trial,
             due_date: new Date(recurringPayment.due_date),
             category_id: recurringPayment.category_id ?? "",
+            reminder_channels: reminderSettings?.channels ?? [],
+            reminder_remind_before_days: reminderSettings?.remind_before_days ?? [],
           }}
           onSubmit={onSubmit}
           isPending={isPending}

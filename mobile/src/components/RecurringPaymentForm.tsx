@@ -10,6 +10,7 @@ import {
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Checkbox from "expo-checkbox";
 
 import { useTypography } from "@/hooks/useTypography";
 import { Styles } from "@/styles/stylesheets";
@@ -24,6 +25,10 @@ import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 import {
   RECURRING_PAYMENT_BILLING_CYCLES,
   RECURRING_PAYMENT_TYPES,
+  REMINDER_CHANNELS,
+  REMINDER_CHANNEL_LABELS,
+  REMINDER_OFFSET_DAYS,
+  REMINDER_OFFSET_DAY_LABELS,
   createRecurringPaymentSchema,
   type CreateRecurringPaymentFormData,
 } from "@/schemas/recurring-payment";
@@ -355,6 +360,80 @@ export function RecurringPaymentForm({
           />
         </View>
 
+        <View
+          style={{
+            width: width * SCREEN_WIDTH_RATIO,
+            gap: 16,
+            padding: 15,
+            borderWidth: 1,
+            borderColor: colors.border,
+            borderRadius: 10,
+            backgroundColor: colors.surface,
+          }}
+        >
+          <Text
+            style={{
+              color: colors.textPrimary,
+              fontWeight: FontWeights.bold,
+              fontSize: FontSizes.medium,
+            }}
+          >
+            Reminder Settings
+          </Text>
+
+          <Controller
+            control={control}
+            name="reminder_channels"
+            render={({ field: { value, onChange } }) => (
+              <ReminderCheckboxSection
+                title="Notification Channels"
+                errorMessage={errors.reminder_channels?.message}
+              >
+                {REMINDER_CHANNELS.map((channel) => (
+                  <ReminderCheckboxRow
+                    key={channel}
+                    label={REMINDER_CHANNEL_LABELS[channel]}
+                    checked={value.includes(channel)}
+                    onToggle={() =>
+                      onChange(
+                        value.includes(channel)
+                          ? value.filter((c) => c !== channel)
+                          : [...value, channel],
+                      )
+                    }
+                  />
+                ))}
+              </ReminderCheckboxSection>
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="reminder_remind_before_days"
+            render={({ field: { value, onChange } }) => (
+              <ReminderCheckboxSection
+                title="Remind me"
+                errorMessage={errors.reminder_remind_before_days?.message}
+              >
+                {REMINDER_OFFSET_DAYS.map((days) => (
+                  <ReminderCheckboxRow
+                    key={days}
+                    label={REMINDER_OFFSET_DAY_LABELS[days]}
+                    checked={value.includes(days)}
+                    onToggle={() =>
+                      onChange(
+                        value.includes(days)
+                          ? value.filter((d) => d !== days)
+                          : [...value, days],
+                      )
+                    }
+                  />
+                ))}
+              </ReminderCheckboxSection>
+            )}
+          />
+        </View>
+
         {errorMessage && (
           <Text
             style={{
@@ -416,5 +495,88 @@ export function RecurringPaymentForm({
         </TouchableOpacity>
       </View>
     </ScrollView>
+  );
+}
+
+function ReminderCheckboxSection({
+  title,
+  errorMessage,
+  children,
+}: {
+  title: string;
+  errorMessage?: string;
+  children: React.ReactNode;
+}) {
+  const { colors } = useTheme();
+  const FontSizes = useTypography();
+
+  return (
+    <View style={{ gap: 4 }}>
+      <Text
+        style={{
+          color: colors.textSecondary,
+          fontWeight: FontWeights.semibold,
+          fontSize: FontSizes.small,
+        }}
+      >
+        {title}
+      </Text>
+      {children}
+      {errorMessage && (
+        <Text
+          style={{
+            color: colors.danger,
+            fontSize: FontSizes.tiny,
+            fontWeight: FontWeights.medium,
+          }}
+        >
+          {errorMessage}
+        </Text>
+      )}
+    </View>
+  );
+}
+
+function ReminderCheckboxRow({
+  label,
+  checked,
+  onToggle,
+}: {
+  label: string;
+  checked: boolean;
+  onToggle: () => void;
+}) {
+  const { colors } = useTheme();
+  const FontSizes = useTypography();
+
+  return (
+    <TouchableOpacity
+      onPress={onToggle}
+      style={[
+        Styles.flexRow,
+        { justifyContent: "flex-start", gap: 10, paddingVertical: 8 },
+      ]}
+    >
+      <Checkbox
+        value={checked}
+        onValueChange={onToggle}
+        color={checked ? colors.primary : undefined}
+        style={{
+          width: 20,
+          height: 20,
+          borderColor: colors.border,
+          borderWidth: 1,
+        }}
+      />
+      <Text
+        style={{
+          color: colors.textPrimary,
+          fontWeight: FontWeights.medium,
+          fontSize: FontSizes.small,
+        }}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
   );
 }
