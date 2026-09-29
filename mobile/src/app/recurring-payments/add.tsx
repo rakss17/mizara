@@ -7,6 +7,7 @@ import { useTypography } from "@/hooks/useTypography";
 import { Styles } from "@/styles/stylesheets";
 import { FontWeights } from "@/styles/typography";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useToast } from "@/contexts/ToastContext";
 import { RecurringPaymentForm } from "@/components/RecurringPaymentForm";
 import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 import type { CreateRecurringPaymentFormData } from "@/schemas/recurring-payment";
@@ -18,6 +19,7 @@ export default function AddRecurringPayment() {
   const router = useRouter();
   const FontSizes = useTypography();
   const { colors } = useTheme();
+  const { showToast } = useToast();
   const { width, height } = useWindowDimensions();
   const {
     createRecurringPayment,
@@ -59,7 +61,12 @@ export default function AddRecurringPayment() {
               remind_before_days: data.reminder_remind_before_days,
             },
           },
-          { onSuccess: () => router.back() },
+          {
+            onSuccess: () => {
+              showToast("Recurring payment added.");
+              router.back();
+            },
+          },
         );
       },
     });

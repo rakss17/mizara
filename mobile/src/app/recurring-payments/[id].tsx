@@ -17,6 +17,7 @@ import { useTypography } from "@/hooks/useTypography";
 import { Styles } from "@/styles/stylesheets";
 import { FontWeights } from "@/styles/typography";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useToast } from "@/contexts/ToastContext";
 import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 import { Badge, Variant } from "@/components/Badge";
 import { RecurringPaymentDetailSkeleton } from "@/components/Skeleton";
@@ -43,6 +44,7 @@ export default function RecurringPaymentDetails() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const FontSizes = useTypography();
   const { colors } = useTheme();
+  const { showToast } = useToast();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { categories } = useCategories();
@@ -72,10 +74,20 @@ export default function RecurringPaymentDetails() {
   const onToggleArchive = () => {
     if (!recurringPayment) return;
 
-    updateRecurringPayment({
-      id: recurringPayment.id,
-      payload: { is_archived: !recurringPayment.is_archived },
-    });
+    updateRecurringPayment(
+      {
+        id: recurringPayment.id,
+        payload: { is_archived: !recurringPayment.is_archived },
+      },
+      {
+        onSuccess: () =>
+          showToast(
+            recurringPayment.is_archived
+              ? "Recurring payment reactivated."
+              : "Recurring payment archived.",
+          ),
+      },
+    );
   };
 
   const onDelete = () => {
@@ -91,7 +103,10 @@ export default function RecurringPaymentDetails() {
           style: "destructive",
           onPress: () =>
             deleteRecurringPayment(recurringPayment.id, {
-              onSuccess: () => router.back(),
+              onSuccess: () => {
+                showToast("Recurring payment deleted.");
+                router.back();
+              },
             }),
         },
       ],

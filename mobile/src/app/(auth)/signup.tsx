@@ -15,6 +15,7 @@ import { useTypography } from "@/hooks/useTypography";
 import { Styles } from "@/styles/stylesheets";
 import { FontWeights } from "@/styles/typography";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useToast } from "@/contexts/ToastContext";
 import { AppField } from "@/components/AppInputField/AppField";
 import { AppInput } from "@/components/AppInputField/AppInput";
 import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
@@ -27,6 +28,7 @@ export default function SignUp() {
   const router = useRouter();
   const FontSizes = useTypography();
   const { colors } = useTheme();
+  const { showToast } = useToast();
   const { width, height } = useWindowDimensions();
   const { signUp, isPending, errorMessage } = useSignUp();
   const {
@@ -53,7 +55,12 @@ export default function SignUp() {
       password: data.password,
     };
 
-    signUp(payload);
+    signUp(payload, {
+      onSuccess: () => {
+        showToast("Account created. You can now sign in.");
+        router.back();
+      },
+    });
   };
 
   return (
