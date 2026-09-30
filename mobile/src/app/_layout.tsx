@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 
 import { queryClient } from "@/services/query-client";
 import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
+import { ToastProvider } from "@/contexts/ToastContext";
 
 function RootNavigator() {
   const { colorScheme } = useTheme();
@@ -29,7 +30,9 @@ export default function RootLayout() {
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <KeyboardProvider>
-          <RootNavigator />
+          <ToastProvider>
+            <RootNavigator />
+          </ToastProvider>
         </KeyboardProvider>
       </QueryClientProvider>
     </ThemeProvider>
