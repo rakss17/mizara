@@ -102,11 +102,7 @@ export class DashboardService {
                     free_trials_ending: String(freeTrialsEnding.length),
                     total_monthly_spending: `P${totalMonthlySpending.toFixed(2)}`, // TODO: replace with actual currency sign
                     upcoming_due: upcomingPayments.map((payment) => {
-                        const dueDate = new Date(payment.due_date);
-                        const daysLeft = Math.round(
-                            (dueDate.getTime() - startOfToday.getTime()) /
-                                (1000 * 60 * 60 * 24),
-                        );
+                        const daysLeft = this.getDaysUntilDue(payment.due_date);
 
                         return {
                             id: payment.id,
@@ -129,5 +125,25 @@ export class DashboardService {
 
             throw error;
         }
+    }
+
+    private getDaysUntilDue(dueDate: Date) {
+        const due = new Date(dueDate);
+        const today = new Date();
+
+        const dueDateOnly = Date.UTC(
+            due.getFullYear(),
+            due.getMonth(),
+            due.getDate(),
+        );
+        const todayDateOnly = Date.UTC(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate(),
+        );
+
+        return Math.round(
+            (dueDateOnly - todayDateOnly) / (1000 * 60 * 60 * 24),
+        );
     }
 }
