@@ -8,14 +8,18 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Animated, Pressable, StyleSheet, Text } from "react-native";
+import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme } from "@/contexts/ThemeContext";
 import { useTypography } from "@/hooks/useTypography";
 import { FontWeights } from "@/styles/typography";
+import CircleCheckIcon from "@/assets/icons/circle-check.svg";
+import CircleInfoIcon from "@/assets/icons/info.svg";
+import CircleXIcon from "@/assets/icons/circle-x.svg";
+import TriangleAlertIcon from "@/assets/icons/triangle-alert.svg";
 
-export type ToastType = "success" | "error" | "info";
+export type ToastType = "success" | "error" | "info" | "warning";
 
 type Toast = {
   id: number;
@@ -53,9 +57,7 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      {toast && (
-        <ToastView key={toast.id} toast={toast} onHide={hideToast} />
-      )}
+      {toast && <ToastView key={toast.id} toast={toast} onHide={hideToast} />}
     </ToastContext.Provider>
   );
 };
@@ -93,9 +95,17 @@ const ToastView = ({
   }, [progress, hide]);
 
   const accentColor = {
-    success: colors.overviewFontGreen,
+    success: colors.success,
     error: colors.danger,
-    info: colors.primary,
+    info: colors.info,
+    warning: colors.warning,
+  }[toast.type];
+
+  const accentBgColor = {
+    success: colors.successBg,
+    error: colors.dangerBg,
+    info: colors.infoBg,
+    warning: colors.warningBg,
   }[toast.type];
 
   const translateY = progress.interpolate({
@@ -108,7 +118,11 @@ const ToastView = ({
       pointerEvents="box-none"
       style={[
         styles.container,
-        { top: insets.top + 10, opacity: progress, transform: [{ translateY }] },
+        {
+          top: insets.top + 10,
+          opacity: progress,
+          transform: [{ translateY }],
+        },
       ]}
     >
       <Pressable
@@ -118,10 +132,30 @@ const ToastView = ({
           {
             backgroundColor: colors.surface,
             borderColor: colors.border,
-            borderLeftColor: accentColor,
           },
         ]}
       >
+        <View
+          style={{
+            borderRadius: 999,
+            backgroundColor: accentBgColor,
+            padding: 10,
+          }}
+        >
+          {toast.type === "success" && (
+            <CircleCheckIcon width={20} height={20} color={accentColor} />
+          )}
+          {toast.type === "error" && (
+            <CircleXIcon width={20} height={20} color={accentColor} />
+          )}
+          {toast.type === "info" && (
+            <CircleInfoIcon width={20} height={20} color={accentColor} />
+          )}
+          {toast.type === "warning" && (
+            <TriangleAlertIcon width={20} height={20} color={accentColor} />
+          )}
+        </View>
+
         <Text
           style={{
             color: colors.textPrimary,
@@ -154,15 +188,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   toast: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
     width: "100%",
     maxWidth: 480,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 6,
     borderWidth: 1,
-    borderLeftWidth: 4,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
+    shadowOpacity: 2,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
     elevation: 4,
