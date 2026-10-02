@@ -4,6 +4,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
+import { useRouter } from "expo-router";
 
 import NotificationIcon from "@/assets/icons/notification.svg";
 import WalletCardsIcon from "@/assets/icons/wallet-cards.svg";
@@ -26,6 +27,7 @@ const formatDaysLeft = (daysLeft: number) => {
 };
 
 export default function Home() {
+  const router = useRouter();
   const { width, height } = useWindowDimensions();
   const FontSizes = useTypography();
   const { colors } = useTheme();
@@ -128,7 +130,7 @@ export default function Home() {
           >
             Upcoming Due
           </Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/recurring-payments")}>
             <Text
               style={{
                 color: colors.primary,
@@ -136,7 +138,7 @@ export default function Home() {
                 fontSize: FontSizes.small,
               }}
             >
-              View all {">"}
+              View all
             </Text>
           </TouchableOpacity>
         </View>
@@ -166,6 +168,12 @@ export default function Home() {
           {upcomingDues.map((dues) => (
             <TouchableOpacity
               key={dues.id}
+              onPress={() =>
+                router.push({
+                  pathname: "/recurring-payments/[id]",
+                  params: { id: dues.id },
+                })
+              }
               style={[Styles.flexRow, { justifyContent: "space-between" }]}
             >
               <View
