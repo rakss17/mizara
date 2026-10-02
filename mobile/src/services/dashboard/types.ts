@@ -16,7 +16,7 @@ export type OverviewResponse = {
     total: string;
     total_upcoming_this_week: string;
     free_trials_ending: string;
-    total_monthly_spending: string;
+    current_month_spending: string;
     upcoming_due: UpcomingDue[];
   };
 };

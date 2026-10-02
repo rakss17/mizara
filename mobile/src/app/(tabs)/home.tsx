@@ -89,28 +89,30 @@ export default function Home() {
           value={overview?.total ?? "0"}
           backgroundColor={colors.overviewBgBlue}
           color={colors.overviewFontBlue}
-          icon={<WalletCardsIcon color={colors.primary} />}
+          icon={
+            <WalletCardsIcon color={colors.primary} width={20} height={20} />
+          }
         />
         <OverviewCard
           title="Upcoming This Week"
           value={overview?.total_upcoming_this_week ?? "0"}
           backgroundColor={colors.overviewBgGreen}
           color={colors.overviewFontGreen}
-          icon={<CalendarDaysIcon />}
+          icon={<CalendarDaysIcon width={20} height={20} />}
         />
         <OverviewCard
           title="Free Trials Ending"
           value={overview?.free_trials_ending ?? "0"}
           backgroundColor={colors.overviewBgYellow}
           color={colors.overviewFontYellow}
-          icon={<HourglassIcon />}
+          icon={<HourglassIcon width={20} height={20} />}
         />
         <OverviewCard
-          title="Monthly Spending"
-          value={overview?.total_monthly_spending ?? "0"}
+          title="Current Month Spending"
+          value={overview?.current_month_spending ?? "0"}
           backgroundColor={colors.overviewBgPurple}
           color={colors.overviewFontPurple}
-          icon={<BanknoteIcon />}
+          icon={<BanknoteIcon width={20} height={20} />}
         />
       </View>
       <View
