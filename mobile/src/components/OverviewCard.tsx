@@ -35,29 +35,36 @@ export const OverviewCard = ({
         },
       ]}
     >
-      <Text
-        style={{
-          color,
-          fontSize: FontSizes.medium,
-          fontWeight: FontWeights.semibold,
-        }}
+      <View
+        style={[
+          Styles.flexRow,
+          {
+            justifyContent: "space-between",
+            width: width * 0.295,
+          },
+        ]}
       >
-        {title}
-      </Text>
-
-      <View style={[Styles.flexRow, { justifyContent: "space-between" }]}>
         <Text
           style={{
             color,
-            fontSize: FontSizes.xLarge,
-            fontWeight: FontWeights.bold,
+            fontSize: FontSizes.small,
+            fontWeight: FontWeights.semibold,
           }}
         >
-          {value}
+          {title}
         </Text>
-
         {icon}
       </View>
+
+      <Text
+        style={{
+          color,
+          fontSize: FontSizes.large,
+          fontWeight: FontWeights.bold,
+        }}
+      >
+        {value}
+      </Text>
     </View>
   );
 };
