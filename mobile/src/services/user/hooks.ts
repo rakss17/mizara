@@ -1,0 +1,19 @@
+import { useQuery } from "@tanstack/react-query";
+
+import { getMyProfileApi } from "./api";
+import { getErrorMessage } from "../get-error-message";
+
+export const useMyProfile = () => {
+  const { data, isPending, error } = useQuery({
+    queryKey: ["my-profile"],
+    queryFn: () => getMyProfileApi(),
+  });
+
+  const errorMessage = getErrorMessage(error);
+
+  return {
+    myProfile: data?.data,
+    isPending,
+    errorMessage,
+  };
+};
