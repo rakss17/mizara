@@ -4,6 +4,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
+import { useRouter } from "expo-router";
 
 import NotificationIcon from "@/assets/icons/notification.svg";
 import WalletCardsIcon from "@/assets/icons/wallet-cards.svg";
@@ -26,6 +27,7 @@ const formatDaysLeft = (daysLeft: number) => {
 };
 
 export default function Home() {
+  const router = useRouter();
   const { width, height } = useWindowDimensions();
   const FontSizes = useTypography();
   const { colors } = useTheme();
@@ -89,28 +91,30 @@ export default function Home() {
           value={overview?.total ?? "0"}
           backgroundColor={colors.overviewBgBlue}
           color={colors.overviewFontBlue}
-          icon={<WalletCardsIcon color={colors.primary} />}
+          icon={
+            <WalletCardsIcon color={colors.primary} width={20} height={20} />
+          }
         />
         <OverviewCard
           title="Upcoming This Week"
           value={overview?.total_upcoming_this_week ?? "0"}
           backgroundColor={colors.overviewBgGreen}
           color={colors.overviewFontGreen}
-          icon={<CalendarDaysIcon />}
+          icon={<CalendarDaysIcon width={20} height={20} />}
         />
         <OverviewCard
           title="Free Trials Ending"
           value={overview?.free_trials_ending ?? "0"}
           backgroundColor={colors.overviewBgYellow}
           color={colors.overviewFontYellow}
-          icon={<HourglassIcon />}
+          icon={<HourglassIcon width={20} height={20} />}
         />
         <OverviewCard
-          title="Monthly Spending"
-          value={overview?.total_monthly_spending ?? "0"}
+          title="Current Month Spending"
+          value={overview?.current_month_spending ?? "0"}
           backgroundColor={colors.overviewBgPurple}
           color={colors.overviewFontPurple}
-          icon={<BanknoteIcon />}
+          icon={<BanknoteIcon width={20} height={20} />}
         />
       </View>
       <View
@@ -126,7 +130,7 @@ export default function Home() {
           >
             Upcoming Due
           </Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/recurring-payments")}>
             <Text
               style={{
                 color: colors.primary,
@@ -134,7 +138,7 @@ export default function Home() {
                 fontSize: FontSizes.small,
               }}
             >
-              View all {">"}
+              View all
             </Text>
           </TouchableOpacity>
         </View>
@@ -164,6 +168,12 @@ export default function Home() {
           {upcomingDues.map((dues) => (
             <TouchableOpacity
               key={dues.id}
+              onPress={() =>
+                router.push({
+                  pathname: "/recurring-payments/[id]",
+                  params: { id: dues.id },
+                })
+              }
               style={[Styles.flexRow, { justifyContent: "space-between" }]}
             >
               <View

@@ -65,30 +65,56 @@ export class DashboardService {
                 );
             });
 
-            // Calculate estimated monthly spending
-            const totalMonthlySpending = recurringPayments.reduce(
-                (total, payment) => {
-                    const amount = Number(payment.amount);
-
-                    switch (payment.billing_cycle) {
-                        case RecurringPaymentBillingCycle.Weekly:
-                            return total + (amount * 52) / 12;
-
-                        case RecurringPaymentBillingCycle.Monthly:
-                            return total + amount;
-
-                        case RecurringPaymentBillingCycle.Quarterly:
-                            return total + amount / 3;
-
-                        case RecurringPaymentBillingCycle.Yearly:
-                            return total + amount / 12;
-
-                        default:
-                            return total;
-                    }
-                },
+            // Current month spending: everything billed this calendar month, paid or not
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const endOfMonth = new Date(
+                now.getFullYear(),
+                now.getMonth() + 1,
                 0,
+                23,
+                59,
+                59,
+                999,
             );
+
+            const currentMonthSpending = recurringPayments
+                .filter((payment) => !payment.is_free_trial)
+                .reduce((total, payment) => {
+                    const amount = Number(payment.amount);
+                    const dueDate = new Date(payment.due_date);
+
+                    if (
+                        payment.billing_cycle ===
+                        RecurringPaymentBillingCycle.Weekly
+                    ) {
+                        // Count every weekly occurrence that lands in this month
+                        const occurrence = new Date(dueDate);
+
+                        if (occurrence < startOfMonth) {
+                            const weeksBehind = Math.ceil(
+                                (startOfMonth.getTime() -
+                                    occurrence.getTime()) /
+                                    (7 * 24 * 60 * 60 * 1000),
+                            );
+                            occurrence.setDate(
+                                occurrence.getDate() + weeksBehind * 7,
+                            );
+                        }
+
+                        let count = 0;
+                        while (occurrence <= endOfMonth) {
+                            count++;
+                            occurrence.setDate(occurrence.getDate() + 7);
+                        }
+
+                        return total + amount * count;
+                    }
+
+                    // Monthly, quarterly and yearly: only if due within this month
+                    return dueDate >= startOfMonth && dueDate <= endOfMonth
+                        ? total + amount
+                        : total;
+                }, 0);
 
             this.logger.log(
                 `Fetched dashboard overview successfully for user: ${currentUserEmail}`,
@@ -100,13 +126,9 @@ export class DashboardService {
                     total: String(recurringPayments.length),
                     total_upcoming_this_week: String(upcomingPayments.length),
                     free_trials_ending: String(freeTrialsEnding.length),
-                    total_monthly_spending: `P${totalMonthlySpending.toFixed(2)}`, // TODO: replace with actual currency sign
+                    current_month_spending: `P${currentMonthSpending.toFixed(2)}`, // TODO: replace with actual currency sign
                     upcoming_due: upcomingPayments.map((payment) => {
-                        const dueDate = new Date(payment.due_date);
-                        const daysLeft = Math.round(
-                            (dueDate.getTime() - startOfToday.getTime()) /
-                                (1000 * 60 * 60 * 24),
-                        );
+                        const daysLeft = this.getDaysUntilDue(payment.due_date);
 
                         return {
                             id: payment.id,
@@ -129,5 +151,25 @@ export class DashboardService {
 
             throw error;
         }
+    }
+
+    private getDaysUntilDue(dueDate: Date) {
+        const due = new Date(dueDate);
+        const today = new Date();
+
+        const dueDateOnly = Date.UTC(
+            due.getFullYear(),
+            due.getMonth(),
+            due.getDate(),
+        );
+        const todayDateOnly = Date.UTC(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate(),
+        );
+
+        return Math.round(
+            (dueDateOnly - todayDateOnly) / (1000 * 60 * 60 * 24),
+        );
     }
 }
