@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { Animated, Easing, type DimensionValue, type ViewStyle } from "react-native";
+import {
+  Animated,
+  Easing,
+  type DimensionValue,
+  type ViewStyle,
+} from "react-native";
 
 import { useTheme } from "@/contexts/ThemeContext";
 import { Styles } from "@/styles/stylesheets";
@@ -173,3 +178,18 @@ export const RecurringPaymentFormSkeleton = ({
     ))}
   </Animated.View>
 );
+
+export const SettingsSkeleton = () => {
+  return (
+    <Animated.View
+      style={{
+        flexDirection: "row",
+        width: "100%",
+        gap: 10,
+      }}
+    >
+      <Skeleton width="20%" height={20} />
+      <Skeleton width="70%" height={20} />
+    </Animated.View>
+  );
+};
