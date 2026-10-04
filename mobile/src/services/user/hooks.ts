@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { getMyProfileApi } from "./api";
+import { getMyProfileApi, getUserSettingsApi } from "./api";
 import { getErrorMessage } from "../get-error-message";
 
 export const useMyProfile = () => {
@@ -13,6 +13,21 @@ export const useMyProfile = () => {
 
   return {
     myProfile: data?.data,
+    isPending,
+    errorMessage,
+  };
+};
+
+export const useUserSettings = () => {
+  const { data, isPending, error } = useQuery({
+    queryKey: ["user-settings"],
+    queryFn: () => getUserSettingsApi(),
+  });
+
+  const errorMessage = getErrorMessage(error);
+
+  return {
+    userSettings: data?.data,
     isPending,
     errorMessage,
   };
