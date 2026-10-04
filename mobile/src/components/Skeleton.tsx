@@ -188,8 +188,8 @@ export const SettingsSkeleton = () => {
         gap: 10,
       }}
     >
-      <Skeleton width="20%" height={20} />
-      <Skeleton width="70%" height={20} />
+      <Skeleton width="20%" height={25} />
+      <Skeleton width="75%" height={25} />
     </Animated.View>
   );
 };
