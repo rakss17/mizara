@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { getMyProfileApi, getUserSettingsApi } from "./api";
+import { getMyProfileApi, getUserSettingsApi, updateMyProfileApi } from "./api";
 import { getErrorMessage } from "../get-error-message";
 
 export const useMyProfile = () => {
@@ -16,6 +16,27 @@ export const useMyProfile = () => {
     isPending,
     errorMessage,
   };
+};
+
+export const useUpdateMyProfile = () => {
+  const queryClient = useQueryClient();
+
+  const {
+    mutate: updateMyProfile,
+    isPending,
+    error,
+  } = useMutation({
+    mutationFn: updateMyProfileApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["my-profile"],
+      });
+    },
+  });
+
+  const errorMessage = getErrorMessage(error);
+
+  return { updateMyProfile, isPending, errorMessage };
 };
 
 export const useUserSettings = () => {

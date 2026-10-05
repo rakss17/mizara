@@ -10,6 +10,15 @@ export type GetMyProfileResponse = {
   data: User;
 };
 
+export type UpdateMyProfilePayload = {
+  first_name?: string;
+  last_name?: string;
+};
+
+export type UpdateMyProfileResponse = {
+  message: string;
+};
+
 export type GetUserSettingsResponse = {
   message: string;
   data: {
