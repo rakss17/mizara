@@ -5,6 +5,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
 import NotificationIcon from "@/assets/icons/notification.svg";
 import ChevronRightIcon from "@/assets/icons/chevron-right.svg";
@@ -37,6 +38,7 @@ const THEME_OPTIONS: { mode: ThemeMode; label: string; description: string }[] =
   ];
 
 export default function Settings() {
+  const router = useRouter();
   const { width, height } = useWindowDimensions();
   const FontSizes = useTypography();
   const { colors, themeMode, setThemeMode } = useTheme();
@@ -125,6 +127,7 @@ export default function Settings() {
           </Text>
         ) : (
           <TouchableOpacity
+            onPress={() => router.push("/settings/profile/edit")}
             style={[
               Styles.flexRow,
               {
