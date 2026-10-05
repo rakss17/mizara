@@ -40,3 +40,29 @@ export type GetUserSettingsResponse = {
     push_notifications_enabled: boolean;
   };
 };
+
+export type KeyedOption = {
+  key: string;
+  name: string;
+};
+
+export type UpdateUserSettingsPayload = {
+  currency?: string;
+  timezone?: string;
+  theme?: string;
+  push_notifications_enabled?: boolean;
+  email_notifications_enabled?: boolean;
+};
+
+export type UpdateUserSettingsResponse = {
+  message: string;
+};
+
+export type GetUserSettingsOptionsResponse = {
+  message: string;
+  data: {
+    currencies: KeyedOption[];
+    timezones: KeyedOption[];
+    themes: KeyedOption[];
+  };
+};
