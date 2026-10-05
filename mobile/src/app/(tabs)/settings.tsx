@@ -224,6 +224,7 @@ export default function Settings() {
           ) : (
             <>
               <TouchableOpacity
+                onPress={() => router.push("/settings/preferences/currency")}
                 style={[
                   Styles.flexRow,
                   {
