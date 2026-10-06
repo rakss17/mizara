@@ -137,44 +137,50 @@ export default function CurrencyPreference() {
                 overflow: "hidden",
               }}
             >
-              {userSettingsOptions.currencies.map((option) => {
-                const isSelected = selectedCurrency === option.key;
+              {[...userSettingsOptions.currencies]
+                .sort(
+                  (a, b) =>
+                    Number(b.key === userSettings.currency.key) -
+                    Number(a.key === userSettings.currency.key),
+                )
+                .map((option) => {
+                  const isSelected = selectedCurrency === option.key;
 
-                return (
-                  <TouchableOpacity
-                    key={option.key}
-                    onPress={() => setSelectedCurrency(option.key)}
-                    disabled={isPending}
-                    style={[
-                      Styles.flexRow,
-                      {
-                        justifyContent: "space-between",
-                        paddingVertical: 20,
-                        paddingHorizontal: 30,
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={{
-                        color: isSelected
-                          ? colors.primary
-                          : colors.textSecondary,
-                        fontWeight: FontWeights.semibold,
-                        fontSize: FontSizes.medium,
-                      }}
+                  return (
+                    <TouchableOpacity
+                      key={option.key}
+                      onPress={() => setSelectedCurrency(option.key)}
+                      disabled={isPending}
+                      style={[
+                        Styles.flexRow,
+                        {
+                          justifyContent: "space-between",
+                          paddingVertical: 20,
+                          paddingHorizontal: 30,
+                        },
+                      ]}
                     >
-                      {option.key} ({option.name})
-                    </Text>
-                    {isSelected && (
-                      <CheckIcon
-                        width={24}
-                        height={24}
-                        color={colors.primary}
-                      />
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
+                      <Text
+                        style={{
+                          color: isSelected
+                            ? colors.primary
+                            : colors.textSecondary,
+                          fontWeight: FontWeights.semibold,
+                          fontSize: FontSizes.medium,
+                        }}
+                      >
+                        {option.key} ({option.name})
+                      </Text>
+                      {isSelected && (
+                        <CheckIcon
+                          width={24}
+                          height={24}
+                          color={colors.primary}
+                        />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
             </View>
           </ScrollView>
 
