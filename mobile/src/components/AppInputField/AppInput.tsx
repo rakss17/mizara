@@ -23,6 +23,7 @@ type AppInputProps = {
   widthRatio?: number;
   error?: boolean;
   keyboardType?: KeyboardTypeOptions;
+  editable?: boolean;
 };
 
 export const AppInput = ({
@@ -35,6 +36,7 @@ export const AppInput = ({
   widthRatio = SCREEN_WIDTH_RATIO,
   error,
   keyboardType,
+  editable = true,
 }: AppInputProps) => {
   const { width: windowWidth } = useWindowDimensions();
   const FontSizes = useTypography();
@@ -57,6 +59,7 @@ export const AppInput = ({
         placeholderTextColor={colors.textMuted}
         autoComplete={autoComplete}
         autoCapitalize={autoCapitalize}
+        editable={editable}
         style={{
           borderColor: error ? colors.danger : colors.border,
           borderWidth: 1,
@@ -65,7 +68,7 @@ export const AppInput = ({
           paddingVertical: 12,
           fontSize: FontSizes.small,
           borderRadius: 6,
-          color: colors.textPrimary,
+          color: editable ? colors.textPrimary : colors.textMuted,
         }}
         keyboardType={keyboardType}
       />

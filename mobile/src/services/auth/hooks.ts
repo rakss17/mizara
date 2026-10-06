@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { logoutApi, signInApi, signUpApi } from "@/services/auth/api";
 import {
@@ -30,6 +30,7 @@ export const useSignIn = () => {
 };
 
 export const useSignOut = () => {
+  const queryClient = useQueryClient();
   const {
     mutate: signOut,
     isPending,
@@ -45,6 +46,7 @@ export const useSignOut = () => {
     onSettled: async () => {
       await deleteAccessToken();
       await deleteRefreshToken();
+      queryClient.clear();
     },
   });
 

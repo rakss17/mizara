@@ -1,35 +1,109 @@
-import { Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Text,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
+import NotificationIcon from "@/assets/icons/notification.svg";
+import ChevronRightIcon from "@/assets/icons/chevron-right.svg";
 import { Styles } from "@/styles/stylesheets";
 import { FontWeights } from "@/styles/typography";
 import { useTypography } from "@/hooks/useTypography";
 import { useTheme, type ThemeMode } from "@/contexts/ThemeContext";
+import { useToast } from "@/contexts/ToastContext";
 import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
-
-const THEME_OPTIONS: { mode: ThemeMode; label: string; description: string }[] = [
-  {
-    mode: "light",
-    label: "Light",
-    description: "Always use the light theme",
-  },
-  {
-    mode: "dark",
-    label: "Dark",
-    description: "Always use the dark theme",
-  },
-  {
-    mode: "system",
-    label: "System",
-    description: "Match your device's appearance",
-  },
-];
+import {
+  useMyProfile,
+  useUserSettings,
+  useUpdateUserSettings,
+} from "@/services/user/hooks";
+import { useSignOut } from "@/services/auth/hooks";
+import { SettingsSkeleton } from "@/components/Skeleton";
+import { ToggleSwitch } from "@/components/ToggleSwitch";
 
 export default function Settings() {
+  const router = useRouter();
   const { width, height } = useWindowDimensions();
   const FontSizes = useTypography();
-  const { colors, themeMode, setThemeMode } = useTheme();
+  const { colors, themeMode } = useTheme();
+  const { showToast } = useToast();
   const insets = useSafeAreaInsets();
+  const {
+    myProfile,
+    isPending: isProfilePending,
+    errorMessage: profileErrorMessage,
+  } = useMyProfile();
+  const {
+    userSettings,
+    isPending: isSettingsPending,
+    errorMessage: settingsErrorMessage,
+  } = useUserSettings();
+  const { updateUserSettings, isPending: isUpdateSettingsPending } =
+    useUpdateUserSettings();
+  const { signOut, isPending: isSigningOut } = useSignOut();
+  const [pendingToggle, setPendingToggle] = useState<"push" | "email" | null>(
+    null,
+  );
+
+  const isPending = isProfilePending || isSettingsPending;
+
+  const handlePushNotificationsToggle = (newValue: boolean) => {
+    setPendingToggle("push");
+    updateUserSettings(
+      { push_notifications_enabled: newValue },
+      {
+        onSuccess: () => {
+          showToast("Push notifications updated.");
+        },
+        onError: () => {
+          showToast("Failed to update push notifications.", "error");
+        },
+        onSettled: () => {
+          setPendingToggle(null);
+        },
+      },
+    );
+  };
+
+  const handleEmailNotificationsToggle = (newValue: boolean) => {
+    setPendingToggle("email");
+    updateUserSettings(
+      { email_notifications_enabled: newValue },
+      {
+        onSuccess: () => {
+          showToast("Email notifications updated.");
+        },
+        onError: () => {
+          showToast("Failed to update email notifications.", "error");
+        },
+        onSettled: () => {
+          setPendingToggle(null);
+        },
+      },
+    );
+  };
+
+  const handleLogout = () => {
+    Alert.alert("Log out", "Are you sure you want to log out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Log out",
+        style: "destructive",
+        onPress: () =>
+          signOut(undefined, {
+            onSettled: () => {
+              router.replace("/signin");
+            },
+          }),
+      },
+    ]);
+  };
 
   return (
     <View
@@ -37,12 +111,21 @@ export default function Settings() {
         Styles.container,
         {
           backgroundColor: colors.background,
-          paddingTop: insets.top + height * 0.02,
+          paddingTop: insets.top + height * 0.01,
           justifyContent: "flex-start",
         },
       ]}
     >
-      <View style={{ width: width * SCREEN_WIDTH_RATIO }}>
+      <View
+        style={[
+          Styles.flexRow,
+          {
+            width: width * SCREEN_WIDTH_RATIO,
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+          },
+        ]}
+      >
         <Text
           style={{
             color: colors.textPrimary,
@@ -52,6 +135,9 @@ export default function Settings() {
         >
           Settings
         </Text>
+        <TouchableOpacity style={{ marginTop: height * 0.01 }}>
+          <NotificationIcon />
+        </TouchableOpacity>
       </View>
 
       <View
@@ -62,98 +148,371 @@ export default function Settings() {
       >
         <Text
           style={{
-            color: colors.textSecondary,
-            fontWeight: FontWeights.semibold,
-            fontSize: FontSizes.small,
+            color: colors.textPrimary,
+            fontWeight: FontWeights.bold,
+            fontSize: FontSizes.medium,
             marginBottom: height * 0.01,
           }}
         >
-          THEME
+          Profile
         </Text>
+        {isPending ? (
+          <SettingsSkeleton />
+        ) : profileErrorMessage || !myProfile ? (
+          <Text
+            style={{
+              color: colors.danger,
+              fontWeight: FontWeights.medium,
+              fontSize: FontSizes.small,
+              textAlign: "left",
+              marginTop: 5,
+            }}
+          >
+            {profileErrorMessage ?? "Profile not found."}
+          </Text>
+        ) : (
+          <TouchableOpacity
+            onPress={() => router.push("/settings/profile/edit")}
+            style={[
+              Styles.flexRow,
+              {
+                justifyContent: "space-between",
+                paddingTop: 5,
+              },
+            ]}
+          >
+            <View style={[Styles.flexRow, { gap: 15, alignItems: "center" }]}>
+              <View
+                style={{
+                  backgroundColor: colors.primary,
+                  borderRadius: 9999,
+                  width: 64,
+                  height: 64,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    color: colors.surface,
+                    fontWeight: FontWeights.medium,
+                    fontSize: FontSizes.xLarge,
+                  }}
+                >
+                  {myProfile?.first_name?.[0]?.toUpperCase()}
+                  {myProfile?.last_name?.[0]?.toUpperCase()}
+                </Text>
+              </View>
+              <View>
+                <Text
+                  style={{
+                    color: colors.textPrimary,
+                    fontWeight: FontWeights.semibold,
+                    fontSize: FontSizes.medium,
+                  }}
+                >
+                  {myProfile?.first_name} {myProfile?.last_name}
+                </Text>
+                <Text
+                  style={{
+                    color: colors.textSecondary,
+                    fontWeight: FontWeights.semibold,
+                    fontSize: FontSizes.small,
+                  }}
+                >
+                  {myProfile?.email}
+                </Text>
+              </View>
+            </View>
+            <ChevronRightIcon
+              width={20}
+              height={20}
+              color={colors.textPrimary}
+            />
+          </TouchableOpacity>
+        )}
+      </View>
 
-        <View
+      <View
+        style={{
+          width: width * SCREEN_WIDTH_RATIO,
+          marginTop: height * 0.03,
+        }}
+      >
+        <Text
           style={{
-            borderColor: colors.border,
-            borderWidth: 1,
-            borderRadius: 8,
-            backgroundColor: colors.surface,
-            overflow: "hidden",
+            color: colors.textPrimary,
+            fontWeight: FontWeights.bold,
+            fontSize: FontSizes.medium,
+            marginBottom: height * 0.01,
           }}
         >
-          {THEME_OPTIONS.map((option, index) => {
-            const isSelected = themeMode === option.mode;
-
-            return (
+          Preferences
+        </Text>
+        <View style={{ gap: 10 }}>
+          {isPending ? (
+            <>
+              <SettingsSkeleton />
+              <SettingsSkeleton />
+              <SettingsSkeleton />
+            </>
+          ) : settingsErrorMessage || !userSettings ? (
+            <Text
+              style={{
+                color: colors.textSecondary,
+                fontWeight: FontWeights.semibold,
+                fontSize: FontSizes.small,
+              }}
+            >
+              {settingsErrorMessage || "Settings not found"}
+            </Text>
+          ) : (
+            <>
               <TouchableOpacity
-                key={option.mode}
-                onPress={() => setThemeMode(option.mode)}
+                onPress={() => router.push("/settings/preferences/currency")}
                 style={[
                   Styles.flexRow,
                   {
                     justifyContent: "space-between",
-                    paddingHorizontal: 15,
-                    paddingVertical: 14,
-                    borderTopWidth: index === 0 ? 0 : 1,
-                    borderTopColor: colors.border,
                   },
                 ]}
               >
-                <View style={{ gap: 2 }}>
-                  <Text
-                    style={{
-                      color: colors.textPrimary,
-                      fontWeight: FontWeights.semibold,
-                      fontSize: FontSizes.medium,
-                    }}
-                  >
-                    {option.label}
-                  </Text>
-                  <Text
-                    style={{
-                      color: colors.textMuted,
-                      fontSize: FontSizes.tiny,
-                    }}
-                  >
-                    {option.description}
-                  </Text>
-                </View>
                 <View
-                  style={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: 10,
-                    borderWidth: 2,
-                    borderColor: isSelected ? colors.primary : colors.border,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                  style={[
+                    Styles.flexRow,
+                    { width: "90%", justifyContent: "space-between" },
+                  ]}
                 >
-                  {isSelected && (
-                    <View
-                      style={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: 5,
-                        backgroundColor: colors.primary,
-                      }}
-                    />
-                  )}
+                  <Text
+                    style={{
+                      color: colors.textSecondary,
+                      fontWeight: FontWeights.bold,
+                      fontSize: FontSizes.small,
+                    }}
+                  >
+                    Currency
+                  </Text>
+                  <Text
+                    style={{
+                      color: colors.textSecondary,
+                      fontWeight: FontWeights.semibold,
+                      fontSize: FontSizes.small,
+                    }}
+                  >
+                    {userSettings?.currency.key} {"("}
+                    {userSettings?.currency.name}
+                    {")"}
+                  </Text>
                 </View>
+                <ChevronRightIcon
+                  width={20}
+                  height={20}
+                  color={colors.textPrimary}
+                />
               </TouchableOpacity>
-            );
-          })}
+              <TouchableOpacity
+                onPress={() => router.push("/settings/preferences/timezone")}
+                style={[
+                  Styles.flexRow,
+                  {
+                    justifyContent: "space-between",
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    Styles.flexRow,
+                    { width: "90%", justifyContent: "space-between" },
+                  ]}
+                >
+                  <Text
+                    style={{
+                      color: colors.textSecondary,
+                      fontWeight: FontWeights.bold,
+                      fontSize: FontSizes.small,
+                    }}
+                  >
+                    Timezone
+                  </Text>
+                  <Text
+                    style={{
+                      color: colors.textSecondary,
+                      fontWeight: FontWeights.semibold,
+                      fontSize: FontSizes.small,
+                    }}
+                  >
+                    {userSettings?.timezone.key.split("/")[0]}/
+                    {userSettings?.timezone.name}
+                  </Text>
+                </View>
+                <ChevronRightIcon
+                  width={20}
+                  height={20}
+                  color={colors.textPrimary}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push("/settings/preferences/theme")}
+                style={[
+                  Styles.flexRow,
+                  {
+                    justifyContent: "space-between",
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    Styles.flexRow,
+                    { width: "90%", justifyContent: "space-between" },
+                  ]}
+                >
+                  <Text
+                    style={{
+                      color: colors.textSecondary,
+                      fontWeight: FontWeights.bold,
+                      fontSize: FontSizes.small,
+                    }}
+                  >
+                    Theme
+                  </Text>
+                  <Text
+                    style={{
+                      color: colors.textSecondary,
+                      fontWeight: FontWeights.semibold,
+                      fontSize: FontSizes.small,
+                    }}
+                  >
+                    {themeMode.charAt(0).toUpperCase() + themeMode.slice(1)}
+                  </Text>
+                </View>
+                <ChevronRightIcon
+                  width={20}
+                  height={20}
+                  color={colors.textPrimary}
+                />
+              </TouchableOpacity>
+            </>
+          )}
         </View>
+      </View>
 
+      <View
+        style={{
+          width: width * SCREEN_WIDTH_RATIO,
+          marginTop: height * 0.03,
+        }}
+      >
         <Text
           style={{
-            color: colors.textMuted,
-            fontSize: FontSizes.tiny,
-            marginTop: height * 0.015,
-            textAlign: "center",
+            color: colors.textPrimary,
+            fontWeight: FontWeights.bold,
+            fontSize: FontSizes.medium,
+            marginBottom: height * 0.01,
           }}
         >
-          More settings coming soon.
+          Notifications
         </Text>
+        <View style={{ gap: 10 }}>
+          {isPending ? (
+            <>
+              <SettingsSkeleton />
+              <SettingsSkeleton />
+            </>
+          ) : settingsErrorMessage || !userSettings ? (
+            <Text
+              style={{
+                color: colors.textSecondary,
+                fontWeight: FontWeights.semibold,
+                fontSize: FontSizes.small,
+              }}
+            >
+              {settingsErrorMessage || "Settings not found"}
+            </Text>
+          ) : (
+            <>
+              <View
+                style={[
+                  Styles.flexRow,
+                  {
+                    justifyContent: "space-between",
+                  },
+                ]}
+              >
+                <Text
+                  style={{
+                    color: colors.textSecondary,
+                    fontWeight: FontWeights.bold,
+                    fontSize: FontSizes.small,
+                  }}
+                >
+                  Push Notifications
+                </Text>
+                <ToggleSwitch
+                  value={userSettings?.push_notifications_enabled ?? false}
+                  onValueChange={handlePushNotificationsToggle}
+                  loading={isUpdateSettingsPending && pendingToggle === "push"}
+                />
+              </View>
+              <View
+                style={[
+                  Styles.flexRow,
+                  {
+                    justifyContent: "space-between",
+                  },
+                ]}
+              >
+                <Text
+                  style={{
+                    color: colors.textSecondary,
+                    fontWeight: FontWeights.bold,
+                    fontSize: FontSizes.small,
+                  }}
+                >
+                  Email Notifications
+                </Text>
+                <ToggleSwitch
+                  value={userSettings?.email_notifications_enabled ?? false}
+                  onValueChange={handleEmailNotificationsToggle}
+                  loading={isUpdateSettingsPending && pendingToggle === "email"}
+                />
+              </View>
+            </>
+          )}
+        </View>
+      </View>
+
+      <View
+        style={{
+          width: width * SCREEN_WIDTH_RATIO,
+          marginTop: height * 0.04,
+        }}
+      >
+        <TouchableOpacity
+          onPress={handleLogout}
+          disabled={isSigningOut}
+          style={{
+            width: "100%",
+            paddingVertical: 12,
+            backgroundColor: "transparent",
+            borderRadius: 6,
+            borderWidth: 1,
+            borderColor: colors.danger,
+            alignItems: "center",
+          }}
+        >
+          {isSigningOut ? (
+            <ActivityIndicator color={colors.danger} />
+          ) : (
+            <Text
+              style={{
+                color: colors.danger,
+                fontWeight: FontWeights.semibold,
+              }}
+            >
+              Log out
+            </Text>
+          )}
+        </TouchableOpacity>
       </View>
     </View>
   );
