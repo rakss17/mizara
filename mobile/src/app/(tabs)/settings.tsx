@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Text,
   TouchableOpacity,
@@ -13,8 +14,13 @@ import { Styles } from "@/styles/stylesheets";
 import { FontWeights } from "@/styles/typography";
 import { useTypography } from "@/hooks/useTypography";
 import { useTheme, type ThemeMode } from "@/contexts/ThemeContext";
+import { useToast } from "@/contexts/ToastContext";
 import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
-import { useMyProfile, useUserSettings } from "@/services/user/hooks";
+import {
+  useMyProfile,
+  useUserSettings,
+  useUpdateUserSettings,
+} from "@/services/user/hooks";
 import { SettingsSkeleton } from "@/components/Skeleton";
 import { ToggleSwitch } from "@/components/ToggleSwitch";
 
@@ -41,7 +47,8 @@ export default function Settings() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
   const FontSizes = useTypography();
-  const { colors, themeMode, setThemeMode } = useTheme();
+  const { colors, themeMode } = useTheme();
+  const { showToast } = useToast();
   const insets = useSafeAreaInsets();
   const {
     myProfile,
@@ -53,11 +60,48 @@ export default function Settings() {
     isPending: isSettingsPending,
     errorMessage: settingsErrorMessage,
   } = useUserSettings();
+  const { updateUserSettings, isPending: isUpdateSettingsPending } =
+    useUpdateUserSettings();
+  const [pendingToggle, setPendingToggle] = useState<"push" | "email" | null>(
+    null,
+  );
 
   const isPending = isProfilePending || isSettingsPending;
 
-  const onChange = (newValue: boolean) => {
-    // Handle toggle switch change
+  const handlePushNotificationsToggle = (newValue: boolean) => {
+    setPendingToggle("push");
+    updateUserSettings(
+      { push_notifications_enabled: newValue },
+      {
+        onSuccess: () => {
+          showToast("Push notifications updated.");
+        },
+        onError: () => {
+          showToast("Failed to update push notifications.", "error");
+        },
+        onSettled: () => {
+          setPendingToggle(null);
+        },
+      },
+    );
+  };
+
+  const handleEmailNotificationsToggle = (newValue: boolean) => {
+    setPendingToggle("email");
+    updateUserSettings(
+      { email_notifications_enabled: newValue },
+      {
+        onSuccess: () => {
+          showToast("Email notifications updated.");
+        },
+        onError: () => {
+          showToast("Failed to update email notifications.", "error");
+        },
+        onSettled: () => {
+          setPendingToggle(null);
+        },
+      },
+    );
   };
 
   return (
@@ -404,7 +448,8 @@ export default function Settings() {
                 </Text>
                 <ToggleSwitch
                   value={userSettings?.push_notifications_enabled ?? false}
-                  onValueChange={onChange}
+                  onValueChange={handlePushNotificationsToggle}
+                  loading={isUpdateSettingsPending && pendingToggle === "push"}
                 />
               </View>
               <View
@@ -426,7 +471,8 @@ export default function Settings() {
                 </Text>
                 <ToggleSwitch
                   value={userSettings?.email_notifications_enabled ?? false}
-                  onValueChange={onChange}
+                  onValueChange={handleEmailNotificationsToggle}
+                  loading={isUpdateSettingsPending && pendingToggle === "email"}
                 />
               </View>
             </>
