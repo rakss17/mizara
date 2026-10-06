@@ -8,6 +8,10 @@ export default function SettingsLayout() {
         name="preferences/currency"
         options={{ presentation: "modal" }}
       />
+      <Stack.Screen
+        name="preferences/timezone"
+        options={{ presentation: "modal" }}
+      />
     </Stack>
   );
 }

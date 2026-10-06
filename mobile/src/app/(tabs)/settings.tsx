@@ -266,6 +266,7 @@ export default function Settings() {
                 />
               </TouchableOpacity>
               <TouchableOpacity
+                onPress={() => router.push("/settings/preferences/timezone")}
                 style={[
                   Styles.flexRow,
                   {
@@ -295,8 +296,8 @@ export default function Settings() {
                       fontSize: FontSizes.small,
                     }}
                   >
-                    {userSettings?.timezone.key}{" "}
-                    {userSettings?.timezone.name.split(" ")[1]}
+                    {userSettings?.timezone.key.split("/")[0]}/
+                    {userSettings?.timezone.name}
                   </Text>
                 </View>
                 <ChevronRightIcon
