@@ -307,6 +307,7 @@ export default function Settings() {
                 />
               </TouchableOpacity>
               <TouchableOpacity
+                onPress={() => router.push("/settings/preferences/theme")}
                 style={[
                   Styles.flexRow,
                   {

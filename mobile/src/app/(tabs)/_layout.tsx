@@ -1,14 +1,26 @@
+import { useEffect } from "react";
 import { Tabs } from "expo-router";
 
 import HomeIcon from "@/assets/icons/home.svg";
 import WalletCardsIcon from "@/assets/icons/wallet-cards.svg";
 import SettingsIcon from "@/assets/icons/settings.svg";
-import { useTheme } from "@/contexts/ThemeContext";
+import { isThemeMode, useTheme } from "@/contexts/ThemeContext";
 import { useTypography } from "@/hooks/useTypography";
+import { useUserSettings } from "@/services/user/hooks";
 
 export default function TabsLayout() {
-  const { colors } = useTheme();
+  const { colors, hasStoredThemeMode, setThemeMode } = useTheme();
   const FontSizes = useTypography();
+  const { userSettings } = useUserSettings();
+
+  // Fresh install / new device: adopt the account's theme. A theme already
+  // chosen on this device always wins.
+  const serverTheme = userSettings?.theme.key;
+  useEffect(() => {
+    if (hasStoredThemeMode === false && isThemeMode(serverTheme)) {
+      setThemeMode(serverTheme);
+    }
+  }, [hasStoredThemeMode, serverTheme, setThemeMode]);
 
   return (
     <Tabs

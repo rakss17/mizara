@@ -12,6 +12,10 @@ export default function SettingsLayout() {
         name="preferences/timezone"
         options={{ presentation: "modal" }}
       />
+      <Stack.Screen
+        name="preferences/theme"
+        options={{ presentation: "modal" }}
+      />
     </Stack>
   );
 }

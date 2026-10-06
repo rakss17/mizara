@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -16,10 +17,15 @@ export type ThemeMode = "light" | "dark" | "system";
 
 const THEME_MODE_KEY = "themeMode";
 
+export const isThemeMode = (value: unknown): value is ThemeMode =>
+  value === "light" || value === "dark" || value === "system";
+
 type ThemeContextValue = {
   themeMode: ThemeMode;
   colorScheme: ColorScheme;
   colors: ThemeColors;
+  // undefined until the device-stored preference has been read
+  hasStoredThemeMode: boolean | undefined;
   setThemeMode: (mode: ThemeMode) => void;
 };
 
@@ -28,19 +34,26 @@ const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const systemColorScheme = useSystemColorScheme();
   const [themeMode, setThemeModeState] = useState<ThemeMode>("system");
+  const [hasStoredThemeMode, setHasStoredThemeMode] = useState<
+    boolean | undefined
+  >(undefined);
 
   useEffect(() => {
     SecureStore.getItemAsync(THEME_MODE_KEY).then((stored) => {
-      if (stored === "light" || stored === "dark" || stored === "system") {
+      if (isThemeMode(stored)) {
         setThemeModeState(stored);
+        setHasStoredThemeMode(true);
+      } else {
+        setHasStoredThemeMode(false);
       }
     });
   }, []);
 
-  const setThemeMode = (mode: ThemeMode) => {
+  const setThemeMode = useCallback((mode: ThemeMode) => {
     setThemeModeState(mode);
+    setHasStoredThemeMode(true);
     SecureStore.setItemAsync(THEME_MODE_KEY, mode);
-  };
+  }, []);
 
   const colorScheme: ColorScheme =
     themeMode === "system"
@@ -58,9 +71,10 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       themeMode,
       colorScheme,
       colors: Colors[colorScheme],
+      hasStoredThemeMode,
       setThemeMode,
     }),
-    [themeMode, colorScheme],
+    [themeMode, colorScheme, hasStoredThemeMode, setThemeMode],
   );
 
   return (
