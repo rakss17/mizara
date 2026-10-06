@@ -1,5 +1,7 @@
 import { useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   Text,
   TouchableOpacity,
   View,
@@ -21,27 +23,9 @@ import {
   useUserSettings,
   useUpdateUserSettings,
 } from "@/services/user/hooks";
+import { useSignOut } from "@/services/auth/hooks";
 import { SettingsSkeleton } from "@/components/Skeleton";
 import { ToggleSwitch } from "@/components/ToggleSwitch";
-
-const THEME_OPTIONS: { mode: ThemeMode; label: string; description: string }[] =
-  [
-    {
-      mode: "light",
-      label: "Light",
-      description: "Always use the light theme",
-    },
-    {
-      mode: "dark",
-      label: "Dark",
-      description: "Always use the dark theme",
-    },
-    {
-      mode: "system",
-      label: "System",
-      description: "Match your device's appearance",
-    },
-  ];
 
 export default function Settings() {
   const router = useRouter();
@@ -62,6 +46,7 @@ export default function Settings() {
   } = useUserSettings();
   const { updateUserSettings, isPending: isUpdateSettingsPending } =
     useUpdateUserSettings();
+  const { signOut, isPending: isSigningOut } = useSignOut();
   const [pendingToggle, setPendingToggle] = useState<"push" | "email" | null>(
     null,
   );
@@ -102,6 +87,22 @@ export default function Settings() {
         },
       },
     );
+  };
+
+  const handleLogout = () => {
+    Alert.alert("Log out", "Are you sure you want to log out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Log out",
+        style: "destructive",
+        onPress: () =>
+          signOut(undefined, {
+            onSettled: () => {
+              router.replace("/signin");
+            },
+          }),
+      },
+    ]);
   };
 
   return (
@@ -480,107 +481,39 @@ export default function Settings() {
         </View>
       </View>
 
-      {/* <View
+      <View
         style={{
           width: width * SCREEN_WIDTH_RATIO,
-          marginTop: height * 0.035,
+          marginTop: height * 0.04,
         }}
       >
-        <Text
+        <TouchableOpacity
+          onPress={handleLogout}
+          disabled={isSigningOut}
           style={{
-            color: colors.textSecondary,
-            fontWeight: FontWeights.semibold,
-            fontSize: FontSizes.small,
-            marginBottom: height * 0.01,
-          }}
-        >
-          THEME
-        </Text>
-
-        <View
-          style={{
-            borderColor: colors.border,
+            width: "100%",
+            paddingVertical: 12,
+            backgroundColor: "transparent",
+            borderRadius: 6,
             borderWidth: 1,
-            borderRadius: 8,
-            backgroundColor: colors.surface,
-            overflow: "hidden",
+            borderColor: colors.danger,
+            alignItems: "center",
           }}
         >
-          {THEME_OPTIONS.map((option, index) => {
-            const isSelected = themeMode === option.mode;
-
-            return (
-              <TouchableOpacity
-                key={option.mode}
-                onPress={() => setThemeMode(option.mode)}
-                style={[
-                  Styles.flexRow,
-                  {
-                    justifyContent: "space-between",
-                    paddingHorizontal: 15,
-                    paddingVertical: 14,
-                    borderTopWidth: index === 0 ? 0 : 1,
-                    borderTopColor: colors.border,
-                  },
-                ]}
-              >
-                <View style={{ gap: 2 }}>
-                  <Text
-                    style={{
-                      color: colors.textPrimary,
-                      fontWeight: FontWeights.semibold,
-                      fontSize: FontSizes.medium,
-                    }}
-                  >
-                    {option.label}
-                  </Text>
-                  <Text
-                    style={{
-                      color: colors.textMuted,
-                      fontSize: FontSizes.tiny,
-                    }}
-                  >
-                    {option.description}
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: 10,
-                    borderWidth: 2,
-                    borderColor: isSelected ? colors.primary : colors.border,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  {isSelected && (
-                    <View
-                      style={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: 5,
-                        backgroundColor: colors.primary,
-                      }}
-                    />
-                  )}
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        <Text
-          style={{
-            color: colors.textMuted,
-            fontSize: FontSizes.tiny,
-            marginTop: height * 0.015,
-            textAlign: "center",
-          }}
-        >
-          More settings coming soon.
-        </Text>
-      </View> */}
+          {isSigningOut ? (
+            <ActivityIndicator color={colors.danger} />
+          ) : (
+            <Text
+              style={{
+                color: colors.danger,
+                fontWeight: FontWeights.semibold,
+              }}
+            >
+              Log out
+            </Text>
+          )}
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
