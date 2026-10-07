@@ -19,6 +19,8 @@ import { UserModel } from '@/user/models/user.model';
 import { ReminderSettingsModel } from '@/reminder/models/reminder-settings.model';
 import {
     RecurringPaymentBillingCycle,
+    RecurringPaymentDueDateType,
+    RecurringPaymentPricingType,
     RecurringPaymentType,
 } from '@/common/enum';
 import { SentReminderModel } from '@/reminder/models/sent-reminder.model';
@@ -38,6 +40,10 @@ interface RecurringPayment {
     is_free_trial: boolean;
     icon?: string;
     due_date: Date;
+    pricing_type?: RecurringPaymentPricingType;
+    billing_date?: Date | null;
+    due_date_type?: RecurringPaymentDueDateType;
+    is_paid?: boolean;
     category_id?: string | null;
     created_at?: Date | null;
     updated_at?: Date | null;
@@ -133,6 +139,33 @@ export class RecurringPaymentModel extends Model<RecurringPayment> {
         allowNull: false,
     })
     declare due_date: Date;
+
+    @Default(RecurringPaymentPricingType.Fixed)
+    @Column({
+        type: DataType.STRING,
+        allowNull: false,
+    })
+    declare pricing_type: RecurringPaymentPricingType;
+
+    @Column({
+        type: DataType.DATE,
+        allowNull: true,
+    })
+    declare billing_date: Date | null;
+
+    @Default(RecurringPaymentDueDateType.Fixed)
+    @Column({
+        type: DataType.STRING,
+        allowNull: false,
+    })
+    declare due_date_type: RecurringPaymentDueDateType;
+
+    @Default(false)
+    @Column({
+        type: DataType.BOOLEAN,
+        allowNull: false,
+    })
+    declare is_paid: boolean;
 
     @ForeignKey(() => CategoryModel)
     @Column({
