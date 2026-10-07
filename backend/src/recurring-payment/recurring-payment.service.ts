@@ -65,6 +65,12 @@ export class RecurringPaymentService {
                         currency: dto.currency,
                         billing_cycle: dto.billing_cycle,
                         due_date: new Date(dto.due_date),
+                        pricing_type: dto.pricing_type,
+                        billing_date: dto.billing_date
+                            ? new Date(dto.billing_date)
+                            : null,
+                        due_date_type: dto.due_date_type,
+                        is_paid: dto.is_paid,
                         is_auto_renew: dto.is_auto_renew,
                         is_archived: dto.is_archived,
                         is_free_trial: dto.is_free_trial,
@@ -240,6 +246,18 @@ export class RecurringPaymentService {
                     }),
                     ...(dto.due_date !== undefined && {
                         due_date: new Date(dto.due_date),
+                    }),
+                    ...(dto.pricing_type !== undefined && {
+                        pricing_type: dto.pricing_type,
+                    }),
+                    ...(dto.billing_date !== undefined && {
+                        billing_date: new Date(dto.billing_date),
+                    }),
+                    ...(dto.due_date_type !== undefined && {
+                        due_date_type: dto.due_date_type,
+                    }),
+                    ...(dto.is_paid !== undefined && {
+                        is_paid: dto.is_paid,
                     }),
                     ...(dto.is_auto_renew !== undefined && {
                         is_auto_renew: dto.is_auto_renew,
