@@ -6,6 +6,10 @@ export type RecurringPaymentBillingCycle =
   | "Quarterly"
   | "Yearly";
 
+export type RecurringPaymentPricingType = "Fixed" | "Variable";
+
+export type RecurringPaymentDueDateType = "Fixed" | "Variable";
+
 export type RecurringPaymentSortBy = "due_date" | "amount" | "name";
 
 export type SortOrder = "ASC" | "DESC";
@@ -24,6 +28,10 @@ export type RecurringPayment = {
   is_free_trial: boolean;
   icon: string | null;
   due_date: string;
+  pricing_type: RecurringPaymentPricingType;
+  billing_date: string | null;
+  due_date_type: RecurringPaymentDueDateType;
+  is_paid: boolean;
   category_id: string | null;
   created_at: string;
   updated_at: string;
@@ -65,6 +73,10 @@ export type CreateRecurringPaymentPayload = {
   is_free_trial: boolean;
   icon?: string;
   due_date: string;
+  pricing_type?: RecurringPaymentPricingType;
+  billing_date?: string;
+  due_date_type?: RecurringPaymentDueDateType;
+  is_paid?: boolean;
   category_id?: string;
 };
 

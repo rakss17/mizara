@@ -8,7 +8,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Checkbox from "expo-checkbox";
 
@@ -24,6 +24,8 @@ import { ToggleSwitch } from "@/components/ToggleSwitch";
 import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 import {
   RECURRING_PAYMENT_BILLING_CYCLES,
+  RECURRING_PAYMENT_DUE_DATE_TYPES,
+  RECURRING_PAYMENT_PRICING_TYPES,
   RECURRING_PAYMENT_TYPES,
   REMINDER_CHANNELS,
   REMINDER_CHANNEL_LABELS,
@@ -58,6 +60,9 @@ export function RecurringPaymentForm({
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [showBillingCycleModal, setShowBillingCycleModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showPricingTypeModal, setShowPricingTypeModal] = useState(false);
+  const [showDueDateTypeModal, setShowDueDateTypeModal] = useState(false);
+  const [showBillingDatePicker, setShowBillingDatePicker] = useState(false);
 
   const {
     control,
@@ -68,6 +73,9 @@ export function RecurringPaymentForm({
     resolver: zodResolver(createRecurringPaymentSchema),
     defaultValues,
   });
+
+  const type = useWatch({ control, name: "type" });
+  const isBill = type === "Bills";
 
   return (
     <ScrollView contentContainerStyle={{ width: width * 1 }}>
@@ -193,6 +201,43 @@ export function RecurringPaymentForm({
           )}
         />
 
+        {isBill && (
+          <Controller
+            control={control}
+            name="pricing_type"
+            render={({ field: { value, onChange } }) => (
+              <AppField
+                label="Pricing type"
+                errorMessage={errors.pricing_type?.message}
+              >
+                <SelectField
+                  value={value}
+                  placeholder="Select pricing type"
+                  onPress={() => setShowPricingTypeModal(true)}
+                  error={!!errors.pricing_type}
+                />
+                <SelectModal
+                  visible={showPricingTypeModal}
+                  onClose={() => setShowPricingTypeModal(false)}
+                  title="Select Pricing Type"
+                  value={value}
+                  options={RECURRING_PAYMENT_PRICING_TYPES.map(
+                    (pricingType) => ({
+                      label: pricingType,
+                      value: pricingType,
+                    }),
+                  )}
+                  onSelect={(selected) =>
+                    onChange(
+                      selected as (typeof RECURRING_PAYMENT_PRICING_TYPES)[number],
+                    )
+                  }
+                />
+              </AppField>
+            )}
+          />
+        )}
+
         {categories.length > 0 && (
           <Controller
             control={control}
@@ -297,6 +342,78 @@ export function RecurringPaymentForm({
             </AppField>
           )}
         />
+
+        {isBill && (
+          <Controller
+            control={control}
+            name="due_date_type"
+            render={({ field: { value, onChange } }) => (
+              <AppField
+                label="Due date type"
+                errorMessage={errors.due_date_type?.message}
+              >
+                <SelectField
+                  value={value}
+                  placeholder="Select due date type"
+                  onPress={() => setShowDueDateTypeModal(true)}
+                  error={!!errors.due_date_type}
+                />
+                <SelectModal
+                  visible={showDueDateTypeModal}
+                  onClose={() => setShowDueDateTypeModal(false)}
+                  title="Select Due Date Type"
+                  value={value}
+                  options={RECURRING_PAYMENT_DUE_DATE_TYPES.map(
+                    (dueDateType) => ({
+                      label: dueDateType,
+                      value: dueDateType,
+                    }),
+                  )}
+                  onSelect={(selected) =>
+                    onChange(
+                      selected as (typeof RECURRING_PAYMENT_DUE_DATE_TYPES)[number],
+                    )
+                  }
+                />
+              </AppField>
+            )}
+          />
+        )}
+
+        {isBill && (
+          <Controller
+            control={control}
+            name="billing_date"
+            render={({ field: { value, onChange } }) => (
+              <AppField
+                label="Billing date (optional)"
+                errorMessage={errors.billing_date?.message}
+              >
+                <SelectField
+                  value={value?.toLocaleDateString()}
+                  placeholder="Select billing date"
+                  onPress={() => setShowBillingDatePicker(true)}
+                  error={!!errors.billing_date}
+                />
+
+                {showBillingDatePicker && (
+                  <DateTimePicker
+                    value={value ?? new Date()}
+                    mode="date"
+                    display="default"
+                    onValueChange={(_event, selectedDate) => {
+                      setShowBillingDatePicker(false);
+                      if (selectedDate) {
+                        onChange(selectedDate);
+                      }
+                    }}
+                  />
+                )}
+              </AppField>
+            )}
+          />
+        )}
+
         <View
           style={[
             Styles.flexColumn,

@@ -90,6 +90,23 @@ export default function RecurringPaymentDetails() {
     );
   };
 
+  const onTogglePaid = () => {
+    if (!recurringPayment) return;
+
+    updateRecurringPayment(
+      {
+        id: recurringPayment.id,
+        payload: { is_paid: !recurringPayment.is_paid },
+      },
+      {
+        onSuccess: () =>
+          showToast(
+            recurringPayment.is_paid ? "Marked as unpaid." : "Marked as paid.",
+          ),
+      },
+    );
+  };
+
   const onDelete = () => {
     if (!recurringPayment) return;
 
@@ -124,6 +141,22 @@ export default function RecurringPaymentDetails() {
             recurringPayment.due_date,
           ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
         },
+        ...(recurringPayment.type === "Bills"
+          ? [
+              { label: "Pricing type", value: recurringPayment.pricing_type },
+              { label: "Due date type", value: recurringPayment.due_date_type },
+              {
+                label: "Billing date",
+                value: recurringPayment.billing_date
+                  ? formatDueDate(recurringPayment.billing_date)
+                  : "Not set",
+              },
+              {
+                label: "Paid",
+                value: recurringPayment.is_paid ? "Yes" : "No",
+              },
+            ]
+          : []),
         {
           label: "Auto-renew",
           value: recurringPayment.is_auto_renew ? "On" : "Off",
@@ -410,6 +443,31 @@ export default function RecurringPaymentDetails() {
             </Text>
           )}
 
+          {recurringPayment.type === "Bills" &&
+            !recurringPayment.is_archived && (
+              <TouchableOpacity
+                onPress={onTogglePaid}
+                disabled={isMutating}
+                style={{
+                  width: "100%",
+                  paddingVertical: 12,
+                  backgroundColor: "transparent",
+                  borderRadius: 6,
+                  borderWidth: 1,
+                  borderColor: colors.primary,
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    color: colors.primary,
+                    fontWeight: FontWeights.semibold,
+                  }}
+                >
+                  {recurringPayment.is_paid ? "Mark as Unpaid" : "Mark as Paid"}
+                </Text>
+              </TouchableOpacity>
+            )}
           <TouchableOpacity
             onPress={onToggleArchive}
             disabled={isMutating}
