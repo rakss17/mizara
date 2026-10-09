@@ -149,7 +149,9 @@ export default function RecurringPayments() {
             borderColor: hasActiveFilters(filters)
               ? colors.primary
               : colors.border,
-            backgroundColor: colors.surface,
+            backgroundColor: hasActiveFilters(filters)
+              ? colors.infoBg
+              : colors.surface,
             alignItems: "center",
             justifyContent: "center",
           }}
@@ -193,13 +195,14 @@ export default function RecurringPayments() {
                 style={[
                   Styles.flexRow,
                   {
-                    padding: 15,
+                    paddingVertical: 10,
+                    paddingHorizontal: 15,
+                    borderColor: isSelected ? colors.primary : colors.border,
                     backgroundColor: isSelected
-                      ? colors.primary
-                      : "transparent",
+                      ? colors.infoBg
+                      : colors.surface,
                     borderRadius: 50,
                     borderWidth: 1,
-                    borderColor: isSelected ? colors.primary : colors.border,
                     gap: 8,
                   },
                 ]}
@@ -207,7 +210,7 @@ export default function RecurringPayments() {
                 <Text
                   style={{
                     fontSize: FontSizes.small,
-                    color: isSelected ? colors.surface : colors.textSecondary,
+                    color: isSelected ? colors.primary : colors.textSecondary,
                     fontWeight: FontWeights.medium,
                   }}
                 >
@@ -280,7 +283,7 @@ export default function RecurringPayments() {
           keyExtractor={(payment) => payment.id}
           contentContainerStyle={{
             gap: 10,
-            paddingVertical: height * 0.02,
+            paddingVertical: height * 0.025,
             width: width * SCREEN_WIDTH_RATIO,
           }}
           onEndReached={() => {
