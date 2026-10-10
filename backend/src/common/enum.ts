@@ -58,3 +58,8 @@ export enum RecurringPaymentDueDateType {
     Fixed = 'Fixed',
     Variable = 'Variable',
 }
+
+export enum RecurringPaymentBillingDateType {
+    Fixed = 'Fixed',
+    Variable = 'Variable',
+}

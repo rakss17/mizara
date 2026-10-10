@@ -89,6 +89,16 @@ export class FindAllRecurringPaymentDto {
     @IsBoolean()
     is_free_trial?: boolean;
 
+    @ApiPropertyOptional({
+        example: true,
+        description:
+            'Filters payments awaiting the user to confirm the new billing cycle',
+    })
+    @IsOptional()
+    @Transform(toBoolean)
+    @IsBoolean()
+    needs_cycle_confirmation?: boolean;
+
     @ApiPropertyOptional({ example: 'b3f2c1a0-1234-4a5b-9c6d-7e8f9a0b1c2d' })
     @IsOptional()
     @IsUUID()

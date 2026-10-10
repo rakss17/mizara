@@ -13,6 +13,7 @@ import {
 
 import {
     RecurringPaymentBillingCycle,
+    RecurringPaymentBillingDateType,
     RecurringPaymentDueDateType,
     RecurringPaymentPricingType,
     RecurringPaymentType,
@@ -108,6 +109,16 @@ export class CreateRecurringPaymentDto {
     billing_date?: string;
 
     @ApiProperty({
+        example: RecurringPaymentBillingDateType.Fixed,
+        enum: RecurringPaymentBillingDateType,
+        required: false,
+        default: RecurringPaymentBillingDateType.Fixed,
+    })
+    @IsOptional()
+    @IsEnum(RecurringPaymentBillingDateType)
+    billing_date_type?: RecurringPaymentBillingDateType;
+
+    @ApiProperty({
         example: RecurringPaymentDueDateType.Fixed,
         enum: RecurringPaymentDueDateType,
         required: false,
@@ -126,7 +137,7 @@ export class CreateRecurringPaymentDto {
         example: 'b3f2c1a0-1234-4a5b-9c6d-7e8f9a0b1c2d',
         required: false,
         description:
-            'ID of a system default category or one of the user\'s own categories.',
+            "ID of a system default category or one of the user's own categories.",
     })
     @IsOptional()
     @IsUUID()
