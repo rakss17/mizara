@@ -15,6 +15,7 @@ import {
     RecurringPaymentType,
     SortOrder,
 } from '@/common/enum';
+import { IsDateStringWithOffset } from '@/common/validators/is-date-string-with-offset.validator';
 
 const toBoolean = ({ value }: { value: unknown }) => {
     if (value === 'true') return true;
@@ -98,6 +99,15 @@ export class FindAllRecurringPaymentDto {
     @Transform(toBoolean)
     @IsBoolean()
     needs_cycle_confirmation?: boolean;
+
+    @ApiPropertyOptional({
+        example: '2026-10-11T00:00:00+08:00',
+        description:
+            "Returns payments awaiting cycle confirmation whose billing date is before this time, or that have no billing date. Pass the start of tomorrow in the user's timezone to get the prompts that are ready today.",
+    })
+    @IsOptional()
+    @IsDateStringWithOffset()
+    confirmation_due_before?: string;
 
     @ApiPropertyOptional({ example: 'b3f2c1a0-1234-4a5b-9c6d-7e8f9a0b1c2d' })
     @IsOptional()

@@ -11,13 +11,13 @@ export class RecurringPaymentSchedulerService {
         private readonly recurringPaymentService: RecurringPaymentService,
     ) {}
 
-    @Cron(CronExpression.EVERY_HOUR)
+    @Cron(CronExpression.EVERY_10_MINUTES)
     async handleBillingCycleRollover() {
         this.logger.log(
             'Running cron job for recurring payment billing cycle rollover...',
         );
 
-        await this.recurringPaymentService.advanceDueDates();
+        await this.recurringPaymentService.rolloverBillingCycles();
 
         this.logger.log(
             'Completed cron job for recurring payment billing cycle rollover',

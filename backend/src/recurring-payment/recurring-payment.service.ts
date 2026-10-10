@@ -15,6 +15,7 @@ import {
     RecurringPaymentDueDateType,
     RecurringPaymentPricingType,
     RecurringPaymentSortBy,
+    RecurringPaymentType,
     SortOrder,
 } from '@/common/enum';
 import { UserService } from '@/user/user.service';
@@ -146,6 +147,26 @@ export class RecurringPaymentService {
                         ...(query.needs_cycle_confirmation !== undefined && {
                             needs_cycle_confirmation:
                                 query.needs_cycle_confirmation,
+                        }),
+                        // Rolled-over dates are only expected until the
+                        // billing date arrives - ask then, when the user has
+                        // the actual bill.
+                        ...(query.confirmation_due_before !== undefined && {
+                            needs_cycle_confirmation: true,
+                            [Op.and]: [
+                                {
+                                    [Op.or]: [
+                                        { billing_date: null },
+                                        {
+                                            billing_date: {
+                                                [Op.lt]: new Date(
+                                                    query.confirmation_due_before,
+                                                ),
+                                            },
+                                        },
+                                    ],
+                                },
+                            ],
                         }),
                         ...(query.search && {
                             [Op.or]: [
@@ -374,9 +395,9 @@ export class RecurringPaymentService {
         return recurringPayment;
     }
 
-    async advanceDueDates() {
+    async rolloverBillingCycles() {
         this.logger.log(
-            'Advancing due dates for elapsed recurring payments...',
+            'Rolling over billing cycles for elapsed recurring payments...',
         );
 
         const elapsedPayments = await this.recurringPaymentModel.findAll({
@@ -419,6 +440,14 @@ export class RecurringPaymentService {
             // Due date's calendar day may still be today (reminders may
             // still be firing for it) - only roll forward past due dates.
             if (format(dueDateInTz, 'yyyy-MM-dd') >= todayDateOnly) {
+                continue;
+            }
+
+            // Unpaid bills stay on their current cycle so they show as overdue.
+            if (
+                payment.type === RecurringPaymentType.Bills &&
+                !payment.is_paid
+            ) {
                 continue;
             }
 
@@ -495,7 +524,7 @@ export class RecurringPaymentService {
                 await transaction.rollback();
 
                 this.logger.error(
-                    `Error advancing due date for recurring payment: ${payment.id}`,
+                    `Error rolling over billing cycle for recurring payment: ${payment.id}`,
                     error,
                 );
                 continue;
@@ -530,7 +559,7 @@ export class RecurringPaymentService {
         }
 
         this.logger.log(
-            `Completed advancing due dates for elapsed ${processedCount} recurring payment(s)`,
+            `Completed rolling over billing cycles for ${processedCount} recurring payment(s)`,
         );
     }
 
