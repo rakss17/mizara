@@ -48,3 +48,18 @@ export enum Theme {
     Dark = 'dark',
     System = 'system',
 }
+
+export enum RecurringPaymentPricingType {
+    Fixed = 'Fixed',
+    Variable = 'Variable',
+}
+
+export enum RecurringPaymentDueDateType {
+    Fixed = 'Fixed',
+    Variable = 'Variable',
+}
+
+export enum RecurringPaymentBillingDateType {
+    Fixed = 'Fixed',
+    Variable = 'Variable',
+}

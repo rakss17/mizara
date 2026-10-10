@@ -87,15 +87,6 @@ export default function RecurringPayments() {
     return () => clearTimeout(timeout);
   }, [search]);
 
-  const categoryNameById = useMemo(
-    () => new Map(categories.map((category) => [category.id, category.name])),
-    [categories],
-  );
-
-  const getCategoryName = (payment: RecurringPayment) =>
-    (payment.category_id && categoryNameById.get(payment.category_id)) ||
-    "Uncategorized";
-
   return (
     <View
       style={[
@@ -401,7 +392,7 @@ export default function RecurringPayments() {
                       fontSize: FontSizes.tiny,
                     }}
                   >
-                    {getCategoryName(payment)}
+                    {payment.type}
                   </Text>
                 </View>
                 <View>
