@@ -64,6 +64,7 @@ export default function EditRecurringPayment() {
       pricing_type: data.pricing_type,
       billing_date:
         data.type === "Bills" ? data.billing_date?.toISOString() : undefined,
+      billing_date_type: data.billing_date_type,
       due_date_type: data.due_date_type,
       category_id: data.category_id,
     };
@@ -162,6 +163,7 @@ export default function EditRecurringPayment() {
             billing_date: recurringPayment.billing_date
               ? new Date(recurringPayment.billing_date)
               : undefined,
+            billing_date_type: recurringPayment.billing_date_type,
             due_date_type: recurringPayment.due_date_type,
             category_id: recurringPayment.category_id ?? "",
             reminder_channels: reminderSettings?.channels ?? [],

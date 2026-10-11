@@ -24,6 +24,7 @@ import { ToggleSwitch } from "@/components/ToggleSwitch";
 import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 import {
   RECURRING_PAYMENT_BILLING_CYCLES,
+  RECURRING_PAYMENT_BILLING_DATE_TYPES,
   RECURRING_PAYMENT_DUE_DATE_TYPES,
   RECURRING_PAYMENT_PRICING_TYPES,
   RECURRING_PAYMENT_TYPES,
@@ -63,6 +64,8 @@ export function RecurringPaymentForm({
   const [showPricingTypeModal, setShowPricingTypeModal] = useState(false);
   const [showDueDateTypeModal, setShowDueDateTypeModal] = useState(false);
   const [showBillingDatePicker, setShowBillingDatePicker] = useState(false);
+  const [showBillingDateTypeModal, setShowBillingDateTypeModal] =
+    useState(false);
 
   const {
     control,
@@ -409,6 +412,43 @@ export function RecurringPaymentForm({
                     }}
                   />
                 )}
+              </AppField>
+            )}
+          />
+        )}
+
+        {isBill && (
+          <Controller
+            control={control}
+            name="billing_date_type"
+            render={({ field: { value, onChange } }) => (
+              <AppField
+                label="Billing date type"
+                errorMessage={errors.billing_date_type?.message}
+              >
+                <SelectField
+                  value={value}
+                  placeholder="Select billing date type"
+                  onPress={() => setShowBillingDateTypeModal(true)}
+                  error={!!errors.billing_date_type}
+                />
+                <SelectModal
+                  visible={showBillingDateTypeModal}
+                  onClose={() => setShowBillingDateTypeModal(false)}
+                  title="Select Billing Date Type"
+                  value={value}
+                  options={RECURRING_PAYMENT_BILLING_DATE_TYPES.map(
+                    (billingDateType) => ({
+                      label: billingDateType,
+                      value: billingDateType,
+                    }),
+                  )}
+                  onSelect={(selected) =>
+                    onChange(
+                      selected as (typeof RECURRING_PAYMENT_BILLING_DATE_TYPES)[number],
+                    )
+                  }
+                />
               </AppField>
             )}
           />

@@ -50,6 +50,7 @@ export default function AddRecurringPayment() {
       pricing_type: data.pricing_type,
       billing_date:
         data.type === "Bills" ? data.billing_date?.toISOString() : undefined,
+      billing_date_type: data.billing_date_type,
       due_date_type: data.due_date_type,
       category_id: data.category_id,
     };
@@ -126,6 +127,7 @@ export default function AddRecurringPayment() {
           due_date: undefined as unknown as Date,
           pricing_type: "Fixed",
           billing_date: undefined,
+          billing_date_type: "Fixed",
           due_date_type: "Fixed",
           category_id: "",
           reminder_channels: [],
