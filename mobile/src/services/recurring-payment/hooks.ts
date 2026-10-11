@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-query";
 
 import {
+  confirmBillingCycleApi,
   createRecurringPaymentApi,
   deleteRecurringPaymentApi,
   getRecurringPaymentApi,
@@ -141,4 +142,31 @@ export const useDeleteRecurringPayment = () => {
   const errorMessage = getErrorMessage(error);
 
   return { deleteRecurringPayment, isPending, errorMessage };
+};
+
+export const useConfirmBillingCycle = () => {
+  const queryClient = useQueryClient();
+
+  const {
+    mutate: confirmBillingCycle,
+    isPending,
+    error,
+  } = useMutation({
+    mutationFn: confirmBillingCycleApi,
+    onSuccess: (_data, { id }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["recurring-payment", id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["recurring-payments"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-overview"],
+      });
+    },
+  });
+
+  const errorMessage = getErrorMessage(error);
+
+  return { confirmBillingCycle, isPending, errorMessage };
 };

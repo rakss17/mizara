@@ -13,6 +13,11 @@ export const RECURRING_PAYMENT_PRICING_TYPES = ["Fixed", "Variable"] as const;
 
 export const RECURRING_PAYMENT_DUE_DATE_TYPES = ["Fixed", "Variable"] as const;
 
+export const RECURRING_PAYMENT_BILLING_DATE_TYPES = [
+  "Fixed",
+  "Variable",
+] as const;
+
 export const REMINDER_CHANNELS = ["push", "email"] as const;
 
 export const REMINDER_CHANNEL_LABELS: Record<
@@ -60,6 +65,9 @@ export const createRecurringPaymentSchema = z.object({
     message: "Please select a pricing type.",
   }),
   billing_date: z.date().optional(),
+  billing_date_type: z.enum(RECURRING_PAYMENT_BILLING_DATE_TYPES, {
+    message: "Please select a billing date type.",
+  }),
   due_date_type: z.enum(RECURRING_PAYMENT_DUE_DATE_TYPES, {
     message: "Please select a due date type.",
   }),
