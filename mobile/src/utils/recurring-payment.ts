@@ -1,5 +1,6 @@
 import { RecurringPaymentStatus } from "@/components/RecurringPaymentsFilterModal";
 import type { ThemeColors } from "@/styles/colors";
+import type { RecurringPayment } from "@/services/recurring-payment/types";
 
 const MONTH_ABBREVIATIONS = [
   "Jan.",
@@ -64,4 +65,22 @@ export const getDueStatusColor = (
 export const formatAmount = (amount: string) => {
   const value = Number(amount);
   return `P${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+};
+
+// After a rollover the new dates are only expected - ask for confirmation
+// once the billing date arrives, when the user has the actual bill.
+export const isCycleConfirmationReady = (
+  recurringPayment: Pick<
+    RecurringPayment,
+    "needs_cycle_confirmation" | "is_archived" | "billing_date"
+  >,
+) =>
+  recurringPayment.needs_cycle_confirmation &&
+  !recurringPayment.is_archived &&
+  (!recurringPayment.billing_date ||
+    getDaysUntilDue(recurringPayment.billing_date) <= 0);
+
+export const getStartOfTomorrow = () => {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 };

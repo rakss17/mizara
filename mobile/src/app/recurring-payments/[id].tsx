@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -13,6 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ArrowLeftIcon from "@/assets/icons/arrow-left.svg";
 import SquarePenIcon from "@/assets/icons/square-pen.svg";
 import WalletCardsIcon from "@/assets/icons/wallet-cards.svg";
+import TriangleAlertIcon from "@/assets/icons/triangle-alert.svg";
 import { useTypography } from "@/hooks/useTypography";
 import { Styles } from "@/styles/stylesheets";
 import { FontWeights } from "@/styles/typography";
@@ -21,6 +23,7 @@ import { useToast } from "@/contexts/ToastContext";
 import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 import { Badge, Variant } from "@/components/Badge";
 import { RecurringPaymentDetailSkeleton } from "@/components/Skeleton";
+import { ConfirmBillingCycleModal } from "@/components/ConfirmBillingCycleModal";
 import {
   useDeleteRecurringPayment,
   useRecurringPayment,
@@ -37,11 +40,15 @@ import {
   formatDueDate,
   formatDueStatus,
   getDueStatusColor,
+  isCycleConfirmationReady,
 } from "@/utils/recurring-payment";
 
 export default function RecurringPaymentDetails() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, confirm } = useLocalSearchParams<{
+    id: string;
+    confirm?: string;
+  }>();
   const FontSizes = useTypography();
   const { colors } = useTheme();
   const { showToast } = useToast();
@@ -60,6 +67,28 @@ export default function RecurringPaymentDetails() {
     isPending: isDeleting,
     errorMessage: deleteErrorMessage,
   } = useDeleteRecurringPayment();
+
+  const [showConfirmCycleModal, setShowConfirmCycleModal] = useState(false);
+  const [isAutoOpenDismissed, setIsAutoOpenDismissed] = useState(false);
+
+  const needsCycleConfirmation =
+    !!recurringPayment && isCycleConfirmationReady(recurringPayment);
+  // Rolled over but the billing date hasn't arrived - dates are a guess.
+  const hasExpectedDates =
+    !!recurringPayment?.needs_cycle_confirmation &&
+    !recurringPayment.is_archived &&
+    !needsCycleConfirmation;
+  const expectedSuffix = hasExpectedDates ? " (expected)" : "";
+
+  // Opened from the home prompt - go straight to the confirmation sheet.
+  const isConfirmCycleModalOpen =
+    showConfirmCycleModal ||
+    (confirm === "1" && needsCycleConfirmation && !isAutoOpenDismissed);
+
+  const onCloseConfirmCycleModal = () => {
+    setShowConfirmCycleModal(false);
+    setIsAutoOpenDismissed(true);
+  };
 
   const isMutating = isUpdating || isDeleting;
   const actionErrorMessage = updateErrorMessage ?? deleteErrorMessage;
@@ -85,6 +114,23 @@ export default function RecurringPaymentDetails() {
             recurringPayment.is_archived
               ? "Recurring payment reactivated."
               : "Recurring payment archived.",
+          ),
+      },
+    );
+  };
+
+  const onTogglePaid = () => {
+    if (!recurringPayment) return;
+
+    updateRecurringPayment(
+      {
+        id: recurringPayment.id,
+        payload: { is_paid: !recurringPayment.is_paid },
+      },
+      {
+        onSuccess: () =>
+          showToast(
+            recurringPayment.is_paid ? "Marked as unpaid." : "Marked as paid.",
           ),
       },
     );
@@ -122,8 +168,31 @@ export default function RecurringPaymentDetails() {
           label: "Due date",
           value: `${formatDueDate(recurringPayment.due_date)}, ${new Date(
             recurringPayment.due_date,
-          ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
+          ).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}${expectedSuffix}`,
         },
+        ...(recurringPayment.type === "Bills"
+          ? [
+              { label: "Pricing type", value: recurringPayment.pricing_type },
+              { label: "Due date type", value: recurringPayment.due_date_type },
+              {
+                label: "Billing date type",
+                value: recurringPayment.billing_date_type,
+              },
+              {
+                label: "Billing date",
+                value: recurringPayment.billing_date
+                  ? `${formatDueDate(recurringPayment.billing_date)}${expectedSuffix}`
+                  : "Not set",
+              },
+              {
+                label: "Paid",
+                value: recurringPayment.is_paid ? "Yes" : "No",
+              },
+            ]
+          : []),
         {
           label: "Auto-renew",
           value: recurringPayment.is_auto_renew ? "On" : "Off",
@@ -236,83 +305,148 @@ export default function RecurringPaymentDetails() {
             },
           ]}
         >
+          {needsCycleConfirmation && (
+            <TouchableOpacity
+              onPress={() => setShowConfirmCycleModal(true)}
+              style={[
+                Styles.flexRow,
+                {
+                  width: "100%",
+                  gap: 10,
+                  padding: 15,
+                  borderWidth: 1,
+                  borderColor: colors.warning,
+                  borderRadius: 10,
+                  backgroundColor: colors.warningBg,
+                  justifyContent: "flex-start",
+                },
+              ]}
+            >
+              <TriangleAlertIcon
+                color={colors.warning}
+                width={22}
+                height={22}
+              />
+              <View style={{ flexShrink: 1, gap: 2 }}>
+                <Text
+                  style={{
+                    color: colors.textPrimary,
+                    fontWeight: FontWeights.semibold,
+                    fontSize: FontSizes.small,
+                  }}
+                >
+                  Your new bill is in
+                </Text>
+                <Text
+                  style={{
+                    color: colors.textSecondary,
+                    fontWeight: FontWeights.medium,
+                    fontSize: FontSizes.tiny,
+                  }}
+                >
+                  Tap to check if anything changed this cycle.
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+
           <View
             style={[
-              Styles.flexColumn,
+              Styles.flexRow,
               {
                 width: "100%",
                 gap: 6,
-                padding: 20,
+                padding: 15,
                 borderWidth: 1,
                 borderColor: colors.border,
                 borderRadius: 10,
                 backgroundColor: colors.surface,
+                justifyContent: "space-between",
+                alignItems: "flex-start",
               },
             ]}
           >
-            <WalletCardsIcon
-              color={
-                recurringPayment.is_archived
-                  ? colors.textMuted
-                  : colors.textSecondary
-              }
-              width={36}
-              height={36}
-            />
-            <View style={[Styles.flexRow, { gap: 5 }]}>
+            <View style={[Styles.flexRow, { gap: 10 }]}>
+              <WalletCardsIcon
+                color={
+                  recurringPayment.is_archived
+                    ? colors.textMuted
+                    : colors.textSecondary
+                }
+                width={36}
+                height={36}
+              />
+              <View>
+                <Text
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  style={{
+                    color: colors.textPrimary,
+                    fontWeight: FontWeights.semibold,
+                    fontSize: FontSizes.large,
+                    flexShrink: 1,
+                  }}
+                >
+                  {recurringPayment.name}
+                </Text>
+                <View
+                  style={[
+                    Styles.flexRow,
+                    { gap: 5, justifyContent: "flex-start" },
+                  ]}
+                >
+                  <Text
+                    style={{
+                      color: colors.textSecondary,
+                      fontWeight: FontWeights.medium,
+                      fontSize: FontSizes.small,
+                    }}
+                  >
+                    {recurringPayment.billing_cycle}
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    Styles.flexRow,
+                    { gap: 5, justifyContent: "flex-start" },
+                  ]}
+                >
+                  {recurringPayment.is_free_trial ? (
+                    <Badge variant={Variant.FreeTrial} />
+                  ) : null}
+                  {recurringPayment.is_archived ? (
+                    <Badge variant={Variant.Archived} />
+                  ) : null}
+                </View>
+              </View>
+            </View>
+            <View>
               <Text
-                numberOfLines={1}
-                ellipsizeMode="tail"
                 style={{
                   color: colors.textPrimary,
-                  fontWeight: FontWeights.semibold,
-                  fontSize: FontSizes.large,
-                  flexShrink: 1,
+                  fontWeight: FontWeights.bold,
+                  fontSize: FontSizes.xLarge,
+                  textAlign: "right",
                 }}
               >
-                {recurringPayment.name}
+                {formatAmount(recurringPayment.amount)}
               </Text>
-            </View>
-            <Text
-              style={{
-                color: colors.textPrimary,
-                fontWeight: FontWeights.bold,
-                fontSize: FontSizes.xLarge,
-              }}
-            >
-              {formatAmount(recurringPayment.amount)}
-            </Text>
-            <Text
-              style={{
-                color: colors.textSecondary,
-                fontWeight: FontWeights.medium,
-                fontSize: FontSizes.small,
-              }}
-            >
-              {recurringPayment.billing_cycle}
-            </Text>
-            {!recurringPayment.is_archived && (
-              <Text
-                style={{
-                  color: getDueStatusColor(
-                    recurringPayment.due_date,
-                    colors,
-                    "Active",
-                  ),
-                  fontWeight: FontWeights.medium,
-                  fontSize: FontSizes.small,
-                }}
-              >
-                {formatDueStatus(recurringPayment.due_date)}
-              </Text>
-            )}
-            <View style={[Styles.flexRow, { gap: 5 }]}>
-              {recurringPayment.is_free_trial ? (
-                <Badge variant={Variant.FreeTrial} />
-              ) : null}
-              {recurringPayment.is_archived ? (
-                <Badge variant={Variant.Archived} />
-              ) : null}
+              {!recurringPayment.is_archived && (
+                <Text
+                  style={{
+                    color: getDueStatusColor(
+                      recurringPayment.due_date,
+                      colors,
+                      "Active",
+                    ),
+                    fontWeight: FontWeights.medium,
+                    fontSize: FontSizes.small,
+                    textAlign: "right",
+                  }}
+                >
+                  {formatDueStatus(recurringPayment.due_date)}
+                </Text>
+              )}
             </View>
           </View>
 
@@ -410,21 +544,52 @@ export default function RecurringPaymentDetails() {
             </Text>
           )}
 
+          {recurringPayment.type === "Bills" &&
+            !recurringPayment.is_archived && (
+              <TouchableOpacity
+                onPress={onTogglePaid}
+                disabled={isMutating}
+                style={{
+                  width: "100%",
+                  paddingVertical: 15,
+                  backgroundColor: colors.primary,
+                  borderRadius: 6,
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    color: "white",
+                    fontWeight: FontWeights.bold,
+                  }}
+                >
+                  {recurringPayment.is_paid ? "Mark as Unpaid" : "Mark as Paid"}
+                </Text>
+              </TouchableOpacity>
+            )}
           <TouchableOpacity
             onPress={onToggleArchive}
             disabled={isMutating}
             style={{
               width: "100%",
-              paddingVertical: 15,
-              backgroundColor: colors.primary,
+
+              paddingVertical: 12,
+              backgroundColor: "transparent",
               borderRadius: 6,
+              borderWidth: 1,
+              borderColor: colors.primary,
               alignItems: "center",
             }}
           >
             {isUpdating ? (
               <ActivityIndicator color="white" />
             ) : (
-              <Text style={{ color: "white", fontWeight: FontWeights.bold }}>
+              <Text
+                style={{
+                  color: colors.primary,
+                  fontWeight: FontWeights.semibold,
+                }}
+              >
                 {recurringPayment.is_archived
                   ? "Reactivate"
                   : "Mark as Cancelled/Archive"}
@@ -460,6 +625,13 @@ export default function RecurringPaymentDetails() {
             </TouchableOpacity>
           )}
         </ScrollView>
+      )}
+
+      {recurringPayment && isConfirmCycleModalOpen && (
+        <ConfirmBillingCycleModal
+          onClose={onCloseConfirmCycleModal}
+          recurringPayment={recurringPayment}
+        />
       )}
     </View>
   );

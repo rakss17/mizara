@@ -20,6 +20,7 @@ import { CurrentUser } from '@/auth/decorators/current-user.decorator';
 import { CreateRecurringPaymentDto } from './dto/create-recurring-payment.dto';
 import { FindAllRecurringPaymentDto } from './dto/find-all-recurring-payment.dto';
 import { UpdateRecurringPaymentDto } from './dto/update-recurring-payment.dto';
+import { ConfirmBillingCycleDto } from './dto/confirm-billing-cycle.dto';
 import type { AuthenticatedUser } from '@/auth/types/authenticated-user.type';
 
 @ApiTags('Recurring Payment')
@@ -69,6 +70,22 @@ export class RecurringPaymentController {
         @Body() dto: UpdateRecurringPaymentDto,
     ) {
         return this.recurringPaymentService.update(
+            id,
+            dto,
+            user.id,
+            user.email,
+        );
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post(':id/confirm-cycle')
+    @HttpCode(HttpStatus.OK)
+    async confirmBillingCycle(
+        @CurrentUser() user: AuthenticatedUser,
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() dto: ConfirmBillingCycleDto,
+    ) {
+        return this.recurringPaymentService.confirmBillingCycle(
             id,
             dto,
             user.id,

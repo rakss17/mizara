@@ -8,9 +8,14 @@ import { RecurringPaymentModel } from '@/recurring-payment/models/recurring-paym
 import { CreateRecurringPaymentDto } from '@/recurring-payment/dto/create-recurring-payment.dto';
 import { FindAllRecurringPaymentDto } from '@/recurring-payment/dto/find-all-recurring-payment.dto';
 import { UpdateRecurringPaymentDto } from '@/recurring-payment/dto/update-recurring-payment.dto';
+import { ConfirmBillingCycleDto } from '@/recurring-payment/dto/confirm-billing-cycle.dto';
 import {
     RecurringPaymentBillingCycle,
+    RecurringPaymentBillingDateType,
+    RecurringPaymentDueDateType,
+    RecurringPaymentPricingType,
     RecurringPaymentSortBy,
+    RecurringPaymentType,
     SortOrder,
 } from '@/common/enum';
 import { UserService } from '@/user/user.service';
@@ -65,6 +70,13 @@ export class RecurringPaymentService {
                         currency: dto.currency,
                         billing_cycle: dto.billing_cycle,
                         due_date: new Date(dto.due_date),
+                        pricing_type: dto.pricing_type,
+                        billing_date: dto.billing_date
+                            ? new Date(dto.billing_date)
+                            : null,
+                        billing_date_type: dto.billing_date_type,
+                        due_date_type: dto.due_date_type,
+                        is_paid: dto.is_paid,
                         is_auto_renew: dto.is_auto_renew,
                         is_archived: dto.is_archived,
                         is_free_trial: dto.is_free_trial,
@@ -131,6 +143,30 @@ export class RecurringPaymentService {
                         }),
                         ...(query.category_id !== undefined && {
                             category_id: query.category_id,
+                        }),
+                        ...(query.needs_cycle_confirmation !== undefined && {
+                            needs_cycle_confirmation:
+                                query.needs_cycle_confirmation,
+                        }),
+                        // Rolled-over dates are only expected until the
+                        // billing date arrives - ask then, when the user has
+                        // the actual bill.
+                        ...(query.confirmation_due_before !== undefined && {
+                            needs_cycle_confirmation: true,
+                            [Op.and]: [
+                                {
+                                    [Op.or]: [
+                                        { billing_date: null },
+                                        {
+                                            billing_date: {
+                                                [Op.lt]: new Date(
+                                                    query.confirmation_due_before,
+                                                ),
+                                            },
+                                        },
+                                    ],
+                                },
+                            ],
                         }),
                         ...(query.search && {
                             [Op.or]: [
@@ -241,6 +277,21 @@ export class RecurringPaymentService {
                     ...(dto.due_date !== undefined && {
                         due_date: new Date(dto.due_date),
                     }),
+                    ...(dto.pricing_type !== undefined && {
+                        pricing_type: dto.pricing_type,
+                    }),
+                    ...(dto.billing_date !== undefined && {
+                        billing_date: new Date(dto.billing_date),
+                    }),
+                    ...(dto.billing_date_type !== undefined && {
+                        billing_date_type: dto.billing_date_type,
+                    }),
+                    ...(dto.due_date_type !== undefined && {
+                        due_date_type: dto.due_date_type,
+                    }),
+                    ...(dto.is_paid !== undefined && {
+                        is_paid: dto.is_paid,
+                    }),
                     ...(dto.is_auto_renew !== undefined && {
                         is_auto_renew: dto.is_auto_renew,
                     }),
@@ -344,9 +395,9 @@ export class RecurringPaymentService {
         return recurringPayment;
     }
 
-    async advanceDueDates() {
+    async rolloverBillingCycles() {
         this.logger.log(
-            'Advancing due dates for elapsed recurring payments...',
+            'Rolling over billing cycles for elapsed recurring payments...',
         );
 
         const elapsedPayments = await this.recurringPaymentModel.findAll({
@@ -392,6 +443,14 @@ export class RecurringPaymentService {
                 continue;
             }
 
+            // Unpaid bills stay on their current cycle so they show as overdue.
+            if (
+                payment.type === RecurringPaymentType.Bills &&
+                !payment.is_paid
+            ) {
+                continue;
+            }
+
             const wasFreeTrial = payment.is_free_trial;
             let wasArchived = false;
             let nextDueDate: Date | null = null;
@@ -415,11 +474,25 @@ export class RecurringPaymentService {
                     }
 
                     let nextDueDateInTz = dueDateInTz;
+                    let nextBillingDateInTz = payment.billing_date
+                        ? toZonedTime(
+                              payment.billing_date,
+                              userSettingsTimezone,
+                          )
+                        : null;
                     do {
                         nextDueDateInTz = this.getNextDueDate(
                             nextDueDateInTz,
                             payment.billing_cycle,
                         );
+                        // Billing date moves in lockstep with the due date so
+                        // they stay the same number of cycles apart.
+                        if (nextBillingDateInTz) {
+                            nextBillingDateInTz = this.getNextDueDate(
+                                nextBillingDateInTz,
+                                payment.billing_cycle,
+                            );
+                        }
                     } while (
                         format(nextDueDateInTz, 'yyyy-MM-dd') < todayDateOnly
                     );
@@ -430,7 +503,18 @@ export class RecurringPaymentService {
                     );
 
                     await payment.update(
-                        { due_date: nextDueDate },
+                        {
+                            due_date: nextDueDate,
+                            billing_date: nextBillingDateInTz
+                                ? fromZonedTime(
+                                      nextBillingDateInTz,
+                                      userSettingsTimezone,
+                                  )
+                                : null,
+                            is_paid: false,
+                            needs_cycle_confirmation:
+                                this.hasVariableCycleFields(payment),
+                        },
                         { transaction },
                     );
                     await transaction.commit();
@@ -440,7 +524,7 @@ export class RecurringPaymentService {
                 await transaction.rollback();
 
                 this.logger.error(
-                    `Error advancing due date for recurring payment: ${payment.id}`,
+                    `Error rolling over billing cycle for recurring payment: ${payment.id}`,
                     error,
                 );
                 continue;
@@ -475,7 +559,7 @@ export class RecurringPaymentService {
         }
 
         this.logger.log(
-            `Completed advancing due dates for elapsed ${processedCount} recurring payment(s)`,
+            `Completed rolling over billing cycles for ${processedCount} recurring payment(s)`,
         );
     }
 
@@ -541,6 +625,77 @@ export class RecurringPaymentService {
             foundUser.first_name,
             payment.name,
             dueDate,
+        );
+    }
+
+    async confirmBillingCycle(
+        id: string,
+        dto: ConfirmBillingCycleDto,
+        currentUserId: string,
+        currentUserEmail: string,
+    ) {
+        const transaction = await this.sequelize.transaction();
+        try {
+            this.logger.log(
+                `Confirming billing cycle for recurring payment ${id} for user: ${currentUserEmail}`,
+            );
+
+            const recurringPayment = await this.recurringPaymentModel.findOne({
+                where: { id, user_id: currentUserId },
+                transaction,
+            });
+
+            if (!recurringPayment) {
+                this.logger.warn(
+                    `Recurring payment ${id} not found for user: ${currentUserEmail}`,
+                );
+                throw new NotFoundException('Recurring payment not found');
+            }
+
+            // Omitted fields mean the user confirmed the rolled-over values.
+            await recurringPayment.update(
+                {
+                    ...(dto.billing_date !== undefined && {
+                        billing_date: new Date(dto.billing_date),
+                    }),
+                    ...(dto.due_date !== undefined && {
+                        due_date: new Date(dto.due_date),
+                    }),
+                    ...(dto.amount !== undefined && { amount: dto.amount }),
+                    needs_cycle_confirmation: false,
+                },
+                { transaction },
+            );
+
+            await transaction.commit();
+
+            this.logger.log(
+                `Successfully confirmed billing cycle for recurring payment ${id} for user: ${currentUserEmail}`,
+            );
+
+            return { message: 'Successfully confirmed billing cycle' };
+        } catch (error) {
+            await transaction.rollback();
+
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+
+            this.logger.error(
+                `Error confirming billing cycle for recurring payment ${id} for user: ${currentUserEmail}`,
+                error,
+            );
+
+            throw error;
+        }
+    }
+
+    private hasVariableCycleFields(payment: RecurringPaymentModel): boolean {
+        return (
+            payment.billing_date_type ===
+                RecurringPaymentBillingDateType.Variable ||
+            payment.due_date_type === RecurringPaymentDueDateType.Variable ||
+            payment.pricing_type === RecurringPaymentPricingType.Variable
         );
     }
 

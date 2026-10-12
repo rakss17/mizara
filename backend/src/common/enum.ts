@@ -43,8 +43,29 @@ export enum ReminderChannel {
     Push = 'push',
 }
 
+export enum SentReminderType {
+    Due = 'due',
+    Overdue = 'overdue',
+    CycleConfirmation = 'cycle_confirmation',
+}
+
 export enum Theme {
     Light = 'light',
     Dark = 'dark',
     System = 'system',
+}
+
+export enum RecurringPaymentPricingType {
+    Fixed = 'Fixed',
+    Variable = 'Variable',
+}
+
+export enum RecurringPaymentDueDateType {
+    Fixed = 'Fixed',
+    Variable = 'Variable',
+}
+
+export enum RecurringPaymentBillingDateType {
+    Fixed = 'Fixed',
+    Variable = 'Variable',
 }

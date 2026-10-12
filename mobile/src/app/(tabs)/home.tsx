@@ -11,6 +11,8 @@ import WalletCardsIcon from "@/assets/icons/wallet-cards.svg";
 import CalendarDaysIcon from "@/assets/icons/calendar-days.svg";
 import HourglassIcon from "@/assets/icons/hourglass.svg";
 import BanknoteIcon from "@/assets/icons/banknote.svg";
+import TriangleAlertIcon from "@/assets/icons/triangle-alert.svg";
+import ChevronRightIcon from "@/assets/icons/chevron-right.svg";
 import { Styles } from "@/styles/stylesheets";
 import { useTheme } from "@/contexts/ThemeContext";
 import { FontWeights } from "@/styles/typography";
@@ -19,6 +21,8 @@ import { OverviewCard } from "@/components/OverviewCard";
 import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 import { useOverview } from "@/services/dashboard/hooks";
 import { Badge, Variant } from "@/components/Badge";
+import { useRecurringPayments } from "@/services/recurring-payment/hooks";
+import { getStartOfTomorrow } from "@/utils/recurring-payment";
 
 const formatDaysLeft = (daysLeft: number) => {
   if (daysLeft <= 0) return "Today";
@@ -32,6 +36,12 @@ export default function Home() {
   const FontSizes = useTypography();
   const { colors } = useTheme();
   const { overview, errorMessage } = useOverview();
+
+  const { recurringPayments: pendingConfirmations } = useRecurringPayments({
+    confirmation_due_before: getStartOfTomorrow().toISOString(),
+    is_archived: false,
+    limit: 5,
+  });
 
   const upcomingDues = overview?.upcoming_due ?? [];
 
@@ -117,6 +127,68 @@ export default function Home() {
           icon={<BanknoteIcon width={20} height={20} />}
         />
       </View>
+      {pendingConfirmations.length > 0 && (
+        <View
+          style={{
+            width: width * SCREEN_WIDTH_RATIO,
+            marginTop: height * 0.03,
+            padding: 12,
+            gap: 8,
+            borderWidth: 1,
+            borderColor: colors.warning,
+            borderRadius: 8,
+            backgroundColor: colors.warningBg,
+          }}
+        >
+          <View
+            style={[Styles.flexRow, { gap: 8, justifyContent: "flex-start" }]}
+          >
+            <TriangleAlertIcon color={colors.warning} width={18} height={18} />
+            <Text
+              style={{
+                color: colors.textPrimary,
+                fontWeight: FontWeights.bold,
+                fontSize: FontSizes.small,
+              }}
+            >
+              Confirm your bill details for this cycle
+            </Text>
+          </View>
+          {pendingConfirmations.map((payment) => (
+            <TouchableOpacity
+              key={payment.id}
+              onPress={() =>
+                router.push({
+                  pathname: "/recurring-payments/[id]",
+                  params: { id: payment.id, confirm: "1" },
+                })
+              }
+              style={[
+                Styles.flexRow,
+                { justifyContent: "space-between", paddingVertical: 4 },
+              ]}
+            >
+              <Text
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                style={{
+                  flexShrink: 1,
+                  color: colors.textPrimary,
+                  fontWeight: FontWeights.semibold,
+                  fontSize: FontSizes.small,
+                }}
+              >
+                {payment.name}
+              </Text>
+              <ChevronRightIcon
+                color={colors.textSecondary}
+                width={18}
+                height={18}
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
       <View
         style={{ width: width * SCREEN_WIDTH_RATIO, marginTop: height * 0.035 }}
       >

@@ -243,6 +243,81 @@ export class EmailService {
         });
     }
 
+    async sendBillOverdue(
+        recipientEmail: string,
+        recipientName: string,
+        paymentName: string,
+        amount: string,
+        dueDate: Date,
+    ): Promise<void> {
+        const formattedDueDate = format(dueDate, 'MMMM d, yyyy');
+        const formattedDueTime = format(dueDate, 'h:mm a');
+
+        await this.transporter.sendMail({
+            from: this.from,
+            to: recipientEmail,
+            subject: `Overdue: ${paymentName} has not been paid`,
+            html: `
+            <h2>Bill Overdue</h2>
+
+            <p>Hello, ${recipientName}!</p>
+
+            <p>
+                Your bill <strong>${paymentName}</strong> was due on
+                <strong>${formattedDueDate}, ${formattedDueTime}</strong>
+                and has not been marked as paid yet.
+            </p>
+
+            <p><strong>Bill:</strong> ${paymentName}</p>
+            <p><strong>Amount:</strong> ${amount}</p>
+            <p><strong>Due date:</strong> ${formattedDueDate}, ${formattedDueTime}</p>
+
+            <p>
+                Please settle this bill as soon as possible to avoid late fees
+                or service interruption. If you've already paid it, mark it as
+                paid in Mizara so it moves on to the next billing cycle.
+            </p>
+        `,
+        });
+    }
+
+    async sendBillCycleConfirmationRequest(
+        recipientEmail: string,
+        recipientName: string,
+        paymentName: string,
+        estimatedAmount: string,
+        estimatedDueDate: Date,
+    ): Promise<void> {
+        const formattedDueDate = format(estimatedDueDate, 'MMMM d, yyyy');
+        const formattedDueTime = format(estimatedDueDate, 'h:mm a');
+
+        await this.transporter.sendMail({
+            from: this.from,
+            to: recipientEmail,
+            subject: `Confirm your new ${paymentName} bill`,
+            html: `
+            <h2>New Billing Cycle</h2>
+
+            <p>Hello, ${recipientName}!</p>
+
+            <p>
+                A new billing cycle has started for
+                <strong>${paymentName}</strong>. Since its amount or dates can
+                change every cycle, please check your latest bill and confirm
+                the details in Mizara.
+            </p>
+
+            <p><strong>Bill:</strong> ${paymentName}</p>
+            <p><strong>Estimated amount:</strong> ${estimatedAmount}</p>
+            <p><strong>Estimated due date:</strong> ${formattedDueDate}, ${formattedDueTime}</p>
+
+            <p>
+                Until confirmed, your reminders will use these estimated values.
+            </p>
+        `,
+        });
+    }
+
     async sendPaymentArchived(
         recipientEmail: string,
         recipientName: string,

@@ -61,6 +61,11 @@ export default function EditRecurringPayment() {
       is_auto_renew: data.is_auto_renew,
       is_free_trial: data.is_free_trial,
       due_date: data.due_date.toISOString(),
+      pricing_type: data.pricing_type,
+      billing_date:
+        data.type === "Bills" ? data.billing_date?.toISOString() : undefined,
+      billing_date_type: data.billing_date_type,
+      due_date_type: data.due_date_type,
       category_id: data.category_id,
     };
 
@@ -154,6 +159,12 @@ export default function EditRecurringPayment() {
             is_auto_renew: recurringPayment.is_auto_renew,
             is_free_trial: recurringPayment.is_free_trial,
             due_date: new Date(recurringPayment.due_date),
+            pricing_type: recurringPayment.pricing_type,
+            billing_date: recurringPayment.billing_date
+              ? new Date(recurringPayment.billing_date)
+              : undefined,
+            billing_date_type: recurringPayment.billing_date_type,
+            due_date_type: recurringPayment.due_date_type,
             category_id: recurringPayment.category_id ?? "",
             reminder_channels: reminderSettings?.channels ?? [],
             reminder_remind_before_days: reminderSettings?.remind_before_days ?? [],
