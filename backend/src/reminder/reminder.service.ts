@@ -7,7 +7,12 @@ import { Op } from 'sequelize';
 import { RecurringPaymentModel } from '@/recurring-payment/models/recurring-payment.model';
 import { ReminderSettingsModel } from './models/reminder-settings.model';
 import { SentReminderModel } from './models/sent-reminder.model';
-import { ReminderChannel, ReminderOffsetDays } from '@/common/enum';
+import {
+    RecurringPaymentType,
+    ReminderChannel,
+    ReminderOffsetDays,
+    SentReminderType,
+} from '@/common/enum';
 import { DueReminder } from './types/due-reminder.type';
 import { UserService } from '@/user/user.service';
 import { EmailService } from '@/email/email.service';
@@ -33,8 +38,25 @@ export class ReminderService {
         this.logger.log(`Finding due reminders...`);
 
         const recurringPayments = await this.recurringPaymentModel.findAll({
-            attributes: ['id', 'name', 'amount', 'due_date', 'user_id'],
-            where: { is_archived: false },
+            attributes: [
+                'id',
+                'name',
+                'type',
+                'amount',
+                'due_date',
+                'user_id',
+                'is_paid',
+                'is_free_trial',
+                'billing_cycle',
+            ],
+            where: {
+                is_archived: false,
+                // A bill already paid this cycle needs no more reminders.
+                [Op.or]: [
+                    { type: { [Op.ne]: RecurringPaymentType.Bills } },
+                    { is_paid: false },
+                ],
+            },
             include: [
                 {
                     model: ReminderSettingsModel,
@@ -67,6 +89,7 @@ export class ReminderService {
                 'reminder_date',
             ],
             where: {
+                type: SentReminderType.Due,
                 reminder_date: {
                     [Op.gte]: format(subDays(new Date(), 1), 'yyyy-MM-dd'),
                 },
