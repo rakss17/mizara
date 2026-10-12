@@ -23,4 +23,19 @@ export class ReminderSchedulerService {
             'Completed cron job for recurring payment due reminders',
         );
     }
+
+    @Cron(CronExpression.EVERY_10_MINUTES)
+    async handleBillNotices() {
+        this.logger.log(
+            'Running cron job for overdue and cycle confirmation bill notices...',
+        );
+
+        await this.reminderService.sendOverdueBillReminders();
+
+        await this.reminderService.sendCycleConfirmationReminders();
+
+        this.logger.log(
+            'Completed cron job for overdue and cycle confirmation bill notices',
+        );
+    }
 }
