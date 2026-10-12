@@ -43,6 +43,12 @@ export enum ReminderChannel {
     Push = 'push',
 }
 
+export enum SentReminderType {
+    Due = 'due',
+    Overdue = 'overdue',
+    CycleConfirmation = 'cycle_confirmation',
+}
+
 export enum Theme {
     Light = 'light',
     Dark = 'dark',

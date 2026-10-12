@@ -13,12 +13,18 @@ import {
 } from 'sequelize-typescript';
 
 import { RecurringPaymentModel } from '@/recurring-payment/models/recurring-payment.model';
-import { ReminderChannel, ReminderOffsetDays } from '@/common/enum';
+import {
+    ReminderChannel,
+    ReminderOffsetDays,
+    SentReminderType,
+} from '@/common/enum';
 
 interface SentReminder {
     id?: string;
     recurring_payment_id?: string;
-    offset_days: ReminderOffsetDays;
+    type?: SentReminderType;
+    offset_days?: ReminderOffsetDays | null;
+    cycle_due_date?: Date | null;
     channel: ReminderChannel;
     reminder_date: string;
     sent_at?: Date;
@@ -45,11 +51,27 @@ export class SentReminderModel extends Model<SentReminder> {
     })
     declare recurring_payment_id: string;
 
+    @Default(SentReminderType.Due)
     @Column({
-        type: DataType.INTEGER,
+        type: DataType.STRING,
         allowNull: false,
     })
-    declare offset_days: ReminderOffsetDays;
+    declare type: SentReminderType;
+
+    // Only set for due reminders.
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: true,
+    })
+    declare offset_days: ReminderOffsetDays | null;
+
+    // The due_date of the cycle an overdue / cycle confirmation notice was
+    // sent for, so it's sent once per cycle.
+    @Column({
+        type: DataType.DATE,
+        allowNull: true,
+    })
+    declare cycle_due_date: Date | null;
 
     @Column({
         type: DataType.STRING,
