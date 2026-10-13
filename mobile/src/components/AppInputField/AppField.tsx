@@ -10,10 +10,16 @@ import { useTheme } from "@/contexts/ThemeContext";
 type AppFieldProps = {
   label: string;
   errorMessage?: string;
+  required?: boolean;
   children?: ReactNode;
 };
 
-export const AppField = ({ label, errorMessage, children }: AppFieldProps) => {
+export const AppField = ({
+  label,
+  errorMessage,
+  required,
+  children,
+}: AppFieldProps) => {
   const { height } = useWindowDimensions();
   const FontSizes = useTypography();
   const { colors } = useTheme();
@@ -36,6 +42,7 @@ export const AppField = ({ label, errorMessage, children }: AppFieldProps) => {
         }}
       >
         {label}
+        {required && <Text style={{ color: colors.danger }}> *</Text>}
       </Text>
       {children}
       {errorMessage && (
