@@ -173,6 +173,7 @@ export default function EditRecurringPayment() {
           isPending={isPending}
           errorMessage={errorMessage}
           resetLabel="Reset"
+          variant="sections"
         />
       )}
     </KeyboardAwareScrollView>
