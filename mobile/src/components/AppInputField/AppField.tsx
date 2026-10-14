@@ -37,7 +37,7 @@ export const AppField = ({
       <Text
         style={{
           color: colors.textSecondary,
-          fontSize: FontSizes.medium,
+          fontSize: FontSizes.small,
           fontWeight: FontWeights.semibold,
         }}
       >
