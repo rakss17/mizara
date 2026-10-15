@@ -75,14 +75,6 @@ function PaymentDetailsSection() {
 
   return (
     <>
-      <TextField
-        name="amount"
-        label="Amount"
-        required
-        placeholder="0.00"
-        keyboardType="numeric"
-      />
-
       {isBill && (
         <SelectInputField
           name="pricing_type"
@@ -96,43 +88,16 @@ function PaymentDetailsSection() {
           )}
         />
       )}
-
-      <SelectInputField
-        name="billing_cycle"
-        label="Billing cycle"
+      <TextField
+        name="amount"
+        label="Amount"
         required
-        placeholder="Select billing cycle"
-        options={toOptions(RECURRING_PAYMENT_BILLING_CYCLES)}
-      />
-
-      <DateField
-        name="due_date"
-        label="Due date"
-        required
-        placeholder="Select date"
-        withTime
+        placeholder="0.00"
+        keyboardType="numeric"
       />
 
       {isBill && (
         <>
-          <SelectInputField
-            name="due_date_type"
-            label="Due date type"
-            required
-            placeholder="Select due date type"
-            hint="Is the bill due on the same day every cycle?"
-            options={toOptions(
-              RECURRING_PAYMENT_DUE_DATE_TYPES,
-              RECURRING_PAYMENT_DUE_DATE_TYPE_DESCRIPTIONS,
-            )}
-          />
-          <DateField
-            name="billing_date"
-            label="Billing date"
-            required
-            placeholder="Select billing date"
-            withTime
-          />
           <SelectInputField
             name="billing_date_type"
             label="Billing date type"
@@ -144,8 +109,45 @@ function PaymentDetailsSection() {
               RECURRING_PAYMENT_BILLING_DATE_TYPE_DESCRIPTIONS,
             )}
           />
+          <DateField
+            name="billing_date"
+            label="Billing date"
+            required
+            placeholder="Select billing date"
+            withTime
+          />
         </>
       )}
+
+      <SelectInputField
+        name="billing_cycle"
+        label="Billing cycle"
+        required
+        placeholder="Select billing cycle"
+        options={toOptions(RECURRING_PAYMENT_BILLING_CYCLES)}
+      />
+
+      {isBill && (
+        <SelectInputField
+          name="due_date_type"
+          label="Due date type"
+          required
+          placeholder="Select due date type"
+          hint="Is the bill due on the same day every cycle?"
+          options={toOptions(
+            RECURRING_PAYMENT_DUE_DATE_TYPES,
+            RECURRING_PAYMENT_DUE_DATE_TYPE_DESCRIPTIONS,
+          )}
+        />
+      )}
+
+      <DateField
+        name="due_date"
+        label="Due date"
+        required
+        placeholder="Select date"
+        withTime
+      />
 
       <View
         style={[
@@ -212,13 +214,13 @@ export const SECTIONS: {
     title: "Payment Details",
     subtitle: "Set how much and how often you pay.",
     fields: [
-      "amount",
       "pricing_type",
-      "billing_cycle",
-      "due_date",
-      "due_date_type",
-      "billing_date",
+      "amount",
       "billing_date_type",
+      "billing_date",
+      "billing_cycle",
+      "due_date_type",
+      "due_date",
       "is_auto_renew",
       "is_free_trial",
     ],

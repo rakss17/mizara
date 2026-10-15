@@ -12,6 +12,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ArrowLeftIcon from "@/assets/icons/arrow-left.svg";
+import InfoIcon from "@/assets/icons/info.svg";
 import SquarePenIcon from "@/assets/icons/square-pen.svg";
 import WalletCardsIcon from "@/assets/icons/wallet-cards.svg";
 import TriangleAlertIcon from "@/assets/icons/triangle-alert.svg";
@@ -24,6 +25,7 @@ import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 import { Badge, Variant } from "@/components/Badge";
 import { RecurringPaymentDetailSkeleton } from "@/components/Skeleton";
 import { ConfirmBillingCycleModal } from "@/components/ConfirmBillingCycleModal";
+import { InfoModal } from "@/components/InfoModal";
 import {
   useDeleteRecurringPayment,
   useRecurringPayment,
@@ -32,6 +34,9 @@ import {
 import { useCategories } from "@/services/category/hooks";
 import { useReminderSettings } from "@/services/reminder-settings/hooks";
 import {
+  RECURRING_PAYMENT_BILLING_DATE_TYPE_DESCRIPTIONS,
+  RECURRING_PAYMENT_DUE_DATE_TYPE_DESCRIPTIONS,
+  RECURRING_PAYMENT_PRICING_TYPE_DESCRIPTIONS,
   REMINDER_CHANNEL_LABELS,
   REMINDER_OFFSET_DAY_LABELS,
 } from "@/schemas/recurring-payment";
@@ -70,6 +75,10 @@ export default function RecurringPaymentDetails() {
 
   const [showConfirmCycleModal, setShowConfirmCycleModal] = useState(false);
   const [isAutoOpenDismissed, setIsAutoOpenDismissed] = useState(false);
+  const [openHint, setOpenHint] = useState<{
+    title: string;
+    message: string;
+  } | null>(null);
 
   const needsCycleConfirmation =
     !!recurringPayment && isCycleConfirmationReady(recurringPayment);
@@ -159,73 +168,102 @@ export default function RecurringPaymentDetails() {
     );
   };
 
-  const details = recurringPayment
-    ? [
-        { label: "Type", value: recurringPayment.type },
-        { label: "Category", value: categoryName },
-        { label: "Billing cycle", value: recurringPayment.billing_cycle },
-        {
-          label: "Due date",
-          value: `${formatDueDate(recurringPayment.due_date)}, ${new Date(
-            recurringPayment.due_date,
-          ).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}${expectedSuffix}`,
-        },
-        ...(recurringPayment.type === "Bills"
-          ? [
-              { label: "Pricing type", value: recurringPayment.pricing_type },
-              { label: "Due date type", value: recurringPayment.due_date_type },
-              {
-                label: "Billing date type",
-                value: recurringPayment.billing_date_type,
-              },
-              {
-                label: "Billing date",
-                value: recurringPayment.billing_date
-                  ? `${formatDueDate(recurringPayment.billing_date)}${expectedSuffix}`
-                  : "Not set",
-              },
-              {
-                label: "Paid",
-                value: recurringPayment.is_paid ? "Yes" : "No",
-              },
-            ]
-          : []),
-        {
-          label: "Auto-renew",
-          value: recurringPayment.is_auto_renew ? "On" : "Off",
-        },
-        {
-          label: "Free trial",
-          value: recurringPayment.is_free_trial ? "Yes" : "No",
-        },
-        { label: "Currency", value: recurringPayment.currency },
-        {
-          label: "Created",
-          value: formatDueDate(recurringPayment.created_at),
-        },
-        ...(reminderSettings
-          ? [
-              {
-                label: "Notification Channels",
-                value: reminderSettings.channels
-                  .map((channel) => REMINDER_CHANNEL_LABELS[channel])
-                  .join(", "),
-              },
-              {
-                label: "Remind me",
-                value: reminderSettings.remind_before_days
-                  .slice()
-                  .sort((a, b) => b - a)
-                  .map((days) => REMINDER_OFFSET_DAY_LABELS[days])
-                  .join(", "),
-              },
-            ]
-          : []),
-      ]
-    : [];
+  const details: { label: string; value: string; hint?: string }[] =
+    recurringPayment
+      ? [
+          { label: "Type", value: recurringPayment.type },
+          { label: "Category", value: categoryName },
+          ...(recurringPayment.type === "Bills"
+            ? [
+                {
+                  label: "Pricing type",
+                  value: recurringPayment.pricing_type,
+                  hint: RECURRING_PAYMENT_PRICING_TYPE_DESCRIPTIONS[
+                    recurringPayment.pricing_type
+                  ],
+                },
+              ]
+            : []),
+          ...(recurringPayment.type === "Bills"
+            ? [
+                {
+                  label: "Billing date type",
+                  value: recurringPayment.billing_date_type,
+                  hint: RECURRING_PAYMENT_BILLING_DATE_TYPE_DESCRIPTIONS[
+                    recurringPayment.billing_date_type
+                  ],
+                },
+                {
+                  label: "Billing date",
+                  value: recurringPayment.billing_date
+                    ? `${formatDueDate(recurringPayment.billing_date)}, ${new Date(
+                        recurringPayment.billing_date,
+                      ).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}${expectedSuffix}`
+                    : "Not set",
+                },
+                {
+                  label: "Paid",
+                  value: recurringPayment.is_paid ? "Yes" : "No",
+                },
+              ]
+            : []),
+          { label: "Billing cycle", value: recurringPayment.billing_cycle },
+          ...(recurringPayment.type === "Bills"
+            ? [
+                {
+                  label: "Due date type",
+                  value: recurringPayment.due_date_type,
+                  hint: RECURRING_PAYMENT_DUE_DATE_TYPE_DESCRIPTIONS[
+                    recurringPayment.due_date_type
+                  ],
+                },
+              ]
+            : []),
+          {
+            label: "Due date",
+            value: `${formatDueDate(recurringPayment.due_date)}, ${new Date(
+              recurringPayment.due_date,
+            ).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}${expectedSuffix}`,
+          },
+          {
+            label: "Auto-renew",
+            value: recurringPayment.is_auto_renew ? "On" : "Off",
+          },
+          {
+            label: "Free trial",
+            value: recurringPayment.is_free_trial ? "Yes" : "No",
+          },
+          { label: "Currency", value: recurringPayment.currency },
+          {
+            label: "Created",
+            value: formatDueDate(recurringPayment.created_at),
+          },
+          ...(reminderSettings
+            ? [
+                {
+                  label: "Notification Channels",
+                  value: reminderSettings.channels
+                    .map((channel) => REMINDER_CHANNEL_LABELS[channel])
+                    .join(", "),
+                },
+                {
+                  label: "Remind me",
+                  value: reminderSettings.remind_before_days
+                    .slice()
+                    .sort((a, b) => b - a)
+                    .map((days) => REMINDER_OFFSET_DAY_LABELS[days])
+                    .join(", "),
+                },
+              ]
+            : []),
+        ]
+      : [];
 
   return (
     <View
@@ -483,17 +521,41 @@ export default function RecurringPaymentDetails() {
                 >
                   {detail.label}
                 </Text>
-                <Text
-                  style={{
-                    color: colors.textPrimary,
-                    fontWeight: FontWeights.semibold,
-                    fontSize: FontSizes.small,
-                    textAlign: "right",
-                    flexShrink: 1,
-                  }}
+                <View
+                  style={[
+                    Styles.flexRow,
+                    { flexShrink: 1, justifyContent: "flex-end", gap: 6 },
+                  ]}
                 >
-                  {detail.value}
-                </Text>
+                  <Text
+                    style={{
+                      color: colors.textPrimary,
+                      fontWeight: FontWeights.semibold,
+                      fontSize: FontSizes.small,
+                      textAlign: "right",
+                      flexShrink: 1,
+                    }}
+                  >
+                    {detail.value}
+                  </Text>
+                  {detail.hint && (
+                    <TouchableOpacity
+                      hitSlop={10}
+                      onPress={() =>
+                        setOpenHint({
+                          title: `${detail.label}: ${detail.value}`,
+                          message: detail.hint!,
+                        })
+                      }
+                    >
+                      <InfoIcon
+                        width={FontSizes.small + 2}
+                        height={FontSizes.small + 2}
+                        color={colors.textSecondary}
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
             ))}
           </View>
@@ -625,6 +687,15 @@ export default function RecurringPaymentDetails() {
             </TouchableOpacity>
           )}
         </ScrollView>
+      )}
+
+      {openHint && (
+        <InfoModal
+          visible
+          onClose={() => setOpenHint(null)}
+          title={openHint.title}
+          message={openHint.message}
+        />
       )}
 
       {recurringPayment && isConfirmCycleModalOpen && (
