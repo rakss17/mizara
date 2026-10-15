@@ -6,8 +6,11 @@ import { useTheme } from "@/contexts/ThemeContext";
 import {
   RECURRING_PAYMENT_BILLING_CYCLES,
   RECURRING_PAYMENT_BILLING_DATE_TYPES,
+  RECURRING_PAYMENT_BILLING_DATE_TYPE_DESCRIPTIONS,
   RECURRING_PAYMENT_DUE_DATE_TYPES,
+  RECURRING_PAYMENT_DUE_DATE_TYPE_DESCRIPTIONS,
   RECURRING_PAYMENT_PRICING_TYPES,
+  RECURRING_PAYMENT_PRICING_TYPE_DESCRIPTIONS,
   RECURRING_PAYMENT_TYPES,
   REMINDER_CHANNELS,
   REMINDER_CHANNEL_LABELS,
@@ -86,7 +89,11 @@ function PaymentDetailsSection() {
           label="Pricing type"
           required
           placeholder="Select pricing type"
-          options={toOptions(RECURRING_PAYMENT_PRICING_TYPES)}
+          hint="Does the amount stay the same every cycle?"
+          options={toOptions(
+            RECURRING_PAYMENT_PRICING_TYPES,
+            RECURRING_PAYMENT_PRICING_TYPE_DESCRIPTIONS,
+          )}
         />
       )}
 
@@ -113,19 +120,29 @@ function PaymentDetailsSection() {
             label="Due date type"
             required
             placeholder="Select due date type"
-            options={toOptions(RECURRING_PAYMENT_DUE_DATE_TYPES)}
+            hint="Is the bill due on the same day every cycle?"
+            options={toOptions(
+              RECURRING_PAYMENT_DUE_DATE_TYPES,
+              RECURRING_PAYMENT_DUE_DATE_TYPE_DESCRIPTIONS,
+            )}
           />
           <DateField
             name="billing_date"
-            label="Billing date (optional)"
+            label="Billing date"
+            required
             placeholder="Select billing date"
+            withTime
           />
           <SelectInputField
             name="billing_date_type"
             label="Billing date type"
             required
             placeholder="Select billing date type"
-            options={toOptions(RECURRING_PAYMENT_BILLING_DATE_TYPES)}
+            hint="Is the bill issued on the same day every cycle?"
+            options={toOptions(
+              RECURRING_PAYMENT_BILLING_DATE_TYPES,
+              RECURRING_PAYMENT_BILLING_DATE_TYPE_DESCRIPTIONS,
+            )}
           />
         </>
       )}

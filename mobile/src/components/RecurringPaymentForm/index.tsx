@@ -170,7 +170,9 @@ function WizardLayout({
           >
             {title}
           </Text>
-          <Text style={{ color: colors.textSecondary, fontSize: FontSizes.small }}>
+          <Text
+            style={{ color: colors.textSecondary, fontSize: FontSizes.small }}
+          >
             {subtitle}
           </Text>
         </View>

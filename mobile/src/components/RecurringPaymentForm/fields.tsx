@@ -72,9 +72,15 @@ export function TextField({
 const toTitleCase = (text: string) =>
   text.replace(/\b\w/g, (letter) => letter.toUpperCase());
 
-/** Builds select options from a list of values that are also their labels. */
-export const toOptions = (values: readonly string[]): SelectModalOption[] =>
-  values.map((value) => ({ label: value, value }));
+export const toOptions = <V extends string>(
+  values: readonly V[],
+  descriptions?: Record<V, string>,
+): SelectModalOption[] =>
+  values.map((value) => ({
+    label: value,
+    value,
+    description: descriptions?.[value],
+  }));
 
 export function SelectInputField({
   name,
@@ -82,7 +88,12 @@ export function SelectInputField({
   required,
   placeholder,
   options,
-}: FieldProps & { placeholder: string; options: SelectModalOption[] }) {
+  hint,
+}: FieldProps & {
+  placeholder: string;
+  options: SelectModalOption[];
+  hint?: string;
+}) {
   const { field, fieldState } = useField(name);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -93,6 +104,7 @@ export function SelectInputField({
       label={label}
       required={required}
       errorMessage={fieldState.error?.message}
+      hint={selected?.description ?? hint}
     >
       <SelectField
         value={selected?.label}

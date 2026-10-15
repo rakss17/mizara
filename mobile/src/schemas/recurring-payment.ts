@@ -18,6 +18,33 @@ export const RECURRING_PAYMENT_BILLING_DATE_TYPES = [
   "Variable",
 ] as const;
 
+export const RECURRING_PAYMENT_PRICING_TYPE_DESCRIPTIONS: Record<
+  (typeof RECURRING_PAYMENT_PRICING_TYPES)[number],
+  string
+> = {
+  Fixed: "You pay the same amount every cycle.",
+  Variable:
+    "The amount changes each cycle (e.g. electricity, water). You'll confirm it every cycle.",
+};
+
+export const RECURRING_PAYMENT_DUE_DATE_TYPE_DESCRIPTIONS: Record<
+  (typeof RECURRING_PAYMENT_DUE_DATE_TYPES)[number],
+  string
+> = {
+  Fixed: "The due date falls on the same day every cycle.",
+  Variable:
+    "The due date shifts each cycle. You'll confirm the new date every cycle.",
+};
+
+export const RECURRING_PAYMENT_BILLING_DATE_TYPE_DESCRIPTIONS: Record<
+  (typeof RECURRING_PAYMENT_BILLING_DATE_TYPES)[number],
+  string
+> = {
+  Fixed: "Your bill is issued on the same day every cycle.",
+  Variable:
+    "Your bill is issued on a different day each cycle. You'll confirm the new date every cycle.",
+};
+
 export const REMINDER_CHANNELS = ["push", "email"] as const;
 
 export const REMINDER_CHANNEL_LABELS: Record<
@@ -64,7 +91,7 @@ export const createRecurringPaymentSchema = z.object({
   pricing_type: z.enum(RECURRING_PAYMENT_PRICING_TYPES, {
     message: "Please select a pricing type.",
   }),
-  billing_date: z.date().optional(),
+  billing_date: z.date({ message: "Please select a billing date." }),
   billing_date_type: z.enum(RECURRING_PAYMENT_BILLING_DATE_TYPES, {
     message: "Please select a billing date type.",
   }),

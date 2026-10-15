@@ -9,6 +9,7 @@ import { useTypography } from "@/hooks/useTypography";
 export type SelectModalOption = {
   label: string;
   value: string;
+  description?: string;
 };
 
 type SelectModalProps = {
@@ -100,17 +101,30 @@ export const SelectModal = ({
                     },
                   ]}
                 >
-                  <Text
-                    style={{
-                      color: selected ? colors.primary : colors.textPrimary,
-                      fontWeight: selected
-                        ? FontWeights.semibold
-                        : FontWeights.medium,
-                      fontSize: FontSizes.small,
-                    }}
-                  >
-                    {option.label}
-                  </Text>
+                  <View style={{ flex: 1, gap: 2, paddingRight: 10 }}>
+                    <Text
+                      style={{
+                        color: selected ? colors.primary : colors.textPrimary,
+                        fontWeight: selected
+                          ? FontWeights.semibold
+                          : FontWeights.medium,
+                        fontSize: FontSizes.small,
+                      }}
+                    >
+                      {option.label}
+                    </Text>
+                    {option.description && (
+                      <Text
+                        style={{
+                          color: colors.textSecondary,
+                          fontSize: FontSizes.tiny,
+                          fontWeight: FontWeights.medium,
+                        }}
+                      >
+                        {option.description}
+                      </Text>
+                    )}
+                  </View>
                   {selected && (
                     <View
                       style={{
