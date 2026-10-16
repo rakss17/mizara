@@ -124,6 +124,7 @@ export default function SignUp() {
               <AppField
                 label="First name"
                 errorMessage={errors.firstName?.message}
+                required
               >
                 <AppInput
                   placeholder="Enter your first name"
@@ -144,6 +145,7 @@ export default function SignUp() {
               <AppField
                 label="Last name"
                 errorMessage={errors.lastName?.message}
+                required
               >
                 <AppInput
                   placeholder="Enter your last name"
@@ -161,7 +163,11 @@ export default function SignUp() {
           control={control}
           name="email"
           render={({ field: { value, onChange } }) => (
-            <AppField label="Email" errorMessage={errors.email?.message}>
+            <AppField
+              label="Email"
+              errorMessage={errors.email?.message}
+              required
+            >
               <AppInput
                 placeholder="Enter your email address"
                 value={value}
@@ -176,7 +182,11 @@ export default function SignUp() {
           control={control}
           name="password"
           render={({ field: { value, onChange } }) => (
-            <AppField label="Password" errorMessage={errors.password?.message}>
+            <AppField
+              label="Password"
+              errorMessage={errors.password?.message}
+              required
+            >
               <AppInput
                 placeholder="Enter your password"
                 value={value}
@@ -195,6 +205,7 @@ export default function SignUp() {
             <AppField
               label="Confirm password"
               errorMessage={errors.confirmPassword?.message}
+              required
             >
               <AppInput
                 placeholder="Confirm your password"
