@@ -469,21 +469,34 @@ export default function RecurringPaymentDetails() {
               >
                 {formatAmount(recurringPayment.amount)}
               </Text>
-              {!recurringPayment.is_archived && (
+              {recurringPayment.type === "Bills" && recurringPayment.is_paid ? (
                 <Text
                   style={{
-                    color: getDueStatusColor(
-                      recurringPayment.due_date,
-                      colors,
-                      "Active",
-                    ),
+                    color: colors.success,
                     fontWeight: FontWeights.medium,
                     fontSize: FontSizes.small,
                     textAlign: "right",
                   }}
                 >
-                  {formatDueStatus(recurringPayment.due_date)}
+                  PAID
                 </Text>
+              ) : (
+                !recurringPayment.is_archived && (
+                  <Text
+                    style={{
+                      color: getDueStatusColor(
+                        recurringPayment.due_date,
+                        colors,
+                        "Active",
+                      ),
+                      fontWeight: FontWeights.medium,
+                      fontSize: FontSizes.small,
+                      textAlign: "right",
+                    }}
+                  >
+                    {formatDueStatus(recurringPayment.due_date)}
+                  </Text>
+                )
               )}
             </View>
           </View>
