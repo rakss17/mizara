@@ -1,5 +1,6 @@
 import { api } from "@/services/api-client";
 import {
+  GoogleSignInPayload,
   LogoutPayload,
   LogoutResponse,
   SignInPayload,
@@ -10,6 +11,11 @@ import {
 
 export const signInApi = async (payload: SignInPayload) => {
   const { data } = await api.post<SignInResponse>("/auth/signin", payload);
+  return data;
+};
+
+export const googleSignInApi = async (payload: GoogleSignInPayload) => {
+  const { data } = await api.post<SignInResponse>("/auth/google", payload);
   return data;
 };
 

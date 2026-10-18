@@ -11,6 +11,10 @@ export type SignInResponse = {
   };
 };
 
+export type GoogleSignInPayload = {
+  id_token: string;
+};
+
 export type LogoutPayload = {
   refresh_token: string;
 };

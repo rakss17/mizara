@@ -16,7 +16,8 @@ import { FontWeights } from "@/styles/typography";
 import { useTheme } from "@/contexts/ThemeContext";
 import { AppField } from "@/components/AppInputField/AppField";
 import { AppInput } from "@/components/AppInputField/AppInput";
-import { useSignIn } from "@/services/auth/hooks";
+import { useGoogleSignIn, useSignIn } from "@/services/auth/hooks";
+import { isGoogleSignInAvailable } from "@/services/auth/google";
 import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 
 export default function SignIn() {
@@ -29,16 +30,25 @@ export default function SignIn() {
     password: "",
   });
   const { signIn, isPending, isSuccess, errorMessage } = useSignIn();
+  const {
+    googleSignIn,
+    isPending: isGooglePending,
+    isSuccess: isGoogleSuccess,
+    errorMessage: googleErrorMessage,
+  } = useGoogleSignIn();
 
   const handleSignIn = () => {
     signIn({ email: data.email, password: data.password });
   };
 
   useEffect(() => {
-    if (isSuccess) {
+    if (isSuccess || isGoogleSuccess) {
       route.replace("/home");
     }
-  }, [isSuccess]);
+  }, [isSuccess, isGoogleSuccess]);
+
+  const isAnyPending = isPending || isGooglePending;
+  const shownErrorMessage = errorMessage ?? googleErrorMessage;
 
   return (
     <View
@@ -113,7 +123,7 @@ export default function SignIn() {
           { marginTop: height * 0.035, gap: height * 0.02 },
         ]}
       >
-        {errorMessage && (
+        {shownErrorMessage && (
           <Text
             style={{
               color: colors.danger,
@@ -122,12 +132,12 @@ export default function SignIn() {
               width: width * SCREEN_WIDTH_RATIO,
             }}
           >
-            {errorMessage}
+            {shownErrorMessage}
           </Text>
         )}
         <TouchableOpacity
           onPress={handleSignIn}
-          disabled={isPending}
+          disabled={isAnyPending}
           style={{
             width: width * SCREEN_WIDTH_RATIO,
             paddingVertical: 15,
@@ -145,60 +155,76 @@ export default function SignIn() {
             </Text>
           )}
         </TouchableOpacity>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            width: width * SCREEN_WIDTH_RATIO,
-            gap: 10,
-          }}
-        >
-          <View
-            style={{
-              flex: 1,
-              height: 1,
-              backgroundColor: colors.border,
-            }}
-          />
+        {isGoogleSignInAvailable && (
+          <>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                width: width * SCREEN_WIDTH_RATIO,
+                gap: 10,
+              }}
+            >
+              <View
+                style={{
+                  flex: 1,
+                  height: 1,
+                  backgroundColor: colors.border,
+                }}
+              />
 
-          <Text
-            style={{
-              color: colors.textMuted,
-              fontSize: FontSizes.small,
-            }}
-          >
-            or
-          </Text>
+              <Text
+                style={{
+                  color: colors.textMuted,
+                  fontSize: FontSizes.small,
+                }}
+              >
+                or
+              </Text>
 
-          <View
-            style={{
-              flex: 1,
-              height: 1,
-              backgroundColor: colors.border,
-            }}
-          />
-        </View>
-        <TouchableOpacity
-          style={[
-            Styles.flexRow,
-            {
-              width: width * SCREEN_WIDTH_RATIO,
-              paddingVertical: 10,
-              backgroundColor: "transparent",
-              borderRadius: 6,
-              borderWidth: 1,
-              borderColor: colors.border,
-              gap: 8,
-            },
-          ]}
-        >
-          <GoogleLogo />
-          <Text
-            style={{ color: colors.textPrimary, fontWeight: FontWeights.bold }}
-          >
-            Sign in with Google
-          </Text>
-        </TouchableOpacity>
+              <View
+                style={{
+                  flex: 1,
+                  height: 1,
+                  backgroundColor: colors.border,
+                }}
+              />
+            </View>
+            <TouchableOpacity
+              onPress={() => googleSignIn()}
+              disabled={isAnyPending}
+              style={[
+                Styles.flexRow,
+                {
+                  width: width * SCREEN_WIDTH_RATIO,
+                  paddingVertical: 10,
+                  backgroundColor: "transparent",
+                  borderRadius: 6,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  gap: 8,
+                  opacity: isGooglePending ? 0.7 : 1,
+                },
+              ]}
+            >
+              {isGooglePending ? (
+                <ActivityIndicator color={colors.textPrimary} />
+              ) : (
+                <>
+                  <GoogleLogo />
+                  <Text
+                    style={{
+                      color: colors.textPrimary,
+                      fontWeight: FontWeights.bold,
+                    }}
+                  >
+                    Sign in with Google
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </>
+        )}
 
         <View style={[Styles.flexRow, { gap: 5, marginTop: height * 0.03 }]}>
           <Text

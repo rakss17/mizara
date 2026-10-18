@@ -8,9 +8,11 @@
     "scheme": "mobileapp",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "bundleIdentifier": "com.rakss17.mizara",
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "com.rakss17.mizara",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

@@ -1,6 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { logoutApi, signInApi, signUpApi } from "@/services/auth/api";
+import {
+  googleSignInApi,
+  logoutApi,
+  signInApi,
+  signUpApi,
+} from "@/services/auth/api";
+import { getGoogleIdToken, signOutOfGoogle } from "@/services/auth/google";
 import {
   deleteAccessToken,
   deleteRefreshToken,
@@ -29,6 +35,43 @@ export const useSignIn = () => {
   return { signIn, isPending, isSuccess, errorMessage };
 };
 
+export const useGoogleSignIn = () => {
+  const {
+    mutate: googleSignIn,
+    isPending,
+    isSuccess,
+    data,
+    error,
+  } = useMutation({
+    mutationFn: async () => {
+      const idToken = await getGoogleIdToken();
+
+      // The user closed the Google account picker.
+      if (!idToken) return null;
+
+      return googleSignInApi({ id_token: idToken });
+    },
+    onSuccess: async (response) => {
+      if (!response) return;
+
+      await saveAccessToken(response.data.accessToken);
+      await saveRefreshToken(response.data.refreshToken);
+    },
+  });
+
+  const errorMessage = getErrorMessage(
+    error,
+    "Google sign-in failed. Please try again.",
+  );
+
+  return {
+    googleSignIn,
+    isPending,
+    isSuccess: isSuccess && !!data,
+    errorMessage,
+  };
+};
+
 export const useSignOut = () => {
   const queryClient = useQueryClient();
   const {
@@ -46,6 +89,8 @@ export const useSignOut = () => {
     onSettled: async () => {
       await deleteAccessToken();
       await deleteRefreshToken();
+      // Shows the account picker again on the next Google sign-in.
+      await signOutOfGoogle();
       queryClient.clear();
     },
   });
