@@ -12,6 +12,7 @@ import { Throttle, seconds } from '@nestjs/throttler';
 import { AuthService } from '@/auth/auth.service';
 import { SignupDto } from '@/auth/dto/signup.dto';
 import { SigninDto } from '@/auth/dto/signin.dto';
+import { GoogleSigninDto } from '@/auth/dto/google-signin.dto';
 import { VerifyEmailDto } from '@/auth/dto/verify-email.dto';
 import { ResendVerificationCodeDto } from '@/auth/dto/resend-verification.dto';
 import { ForgotPasswordDto } from '@/auth/dto/forgot-password.dto';
@@ -47,6 +48,13 @@ export class AuthController {
     @HttpCode(HttpStatus.OK)
     async signin(@Body() signinDto: SigninDto) {
         return this.authService.signin(signinDto.email, signinDto.password);
+    }
+
+    @Throttle({ default: { limit: 5, ttl: seconds(60) } })
+    @Post('google')
+    @HttpCode(HttpStatus.OK)
+    async googleSignin(@Body() dto: GoogleSigninDto) {
+        return this.authService.googleSignin(dto.id_token);
     }
 
     @Throttle({ default: { limit: 10, ttl: seconds(60) } })

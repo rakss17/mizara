@@ -6,6 +6,7 @@ import {
     UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { OAuth2Client, TokenPayload } from 'google-auth-library';
 import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import * as bcrypt from 'bcrypt';
 import { randomInt, randomBytes, randomUUID, createHash } from 'crypto';
@@ -20,12 +21,14 @@ import { VerificationCodeType } from '@/common/enum';
 import { ChangeEmailDto } from '@/auth/dto/change-email.dto';
 import { ChangePasswordDto } from '@/auth/dto/change-password.dto';
 import { VerifyChangeEmailDto } from './dto/verify-change-email.dto';
+import { UserModel } from '@/user/models/user.model';
 
 const REFRESH_TOKEN_TTL_DAYS = Number(process.env.REFRESH_TOKEN_TTL_DAYS) || 30;
 
 @Injectable()
 export class AuthService {
     private readonly logger = new Logger(AuthService.name);
+    private readonly googleClient = new OAuth2Client();
 
     constructor(
         private readonly userService: UserService,
@@ -116,14 +119,9 @@ export class AuthService {
             throw new BadRequestException('Email is not yet verified');
         }
 
-        const payload = {
-            sub: validatedUser.data.id,
-            email: validatedUser.data.email,
-        };
-
-        const accessToken = this.jwtService.sign(payload);
-        const { rawToken: refreshToken } = await this.issueRefreshToken(
+        const session = await this.issueSession(
             validatedUser.data.id,
+            validatedUser.data.email,
         );
 
         this.logger.log(
@@ -132,8 +130,164 @@ export class AuthService {
 
         return {
             message: `User ${validatedUser.data.email} signed in successfully`,
-            data: { accessToken, refreshToken },
+            data: session,
         };
+    }
+
+    async googleSignin(idToken: string) {
+        this.logger.log('Processing Google sign-in');
+
+        const googleUser = await this.verifyGoogleIdToken(idToken);
+        const email = googleUser.email!.toLowerCase();
+
+        const transaction = await this.sequelize.transaction();
+
+        try {
+            let user = await this.userService.findByGoogleId(googleUser.sub);
+
+            if (!user) {
+                user = await this.userService.findByEmail(email);
+
+                if (user) {
+                    user = await this.linkGoogleAccount(
+                        user,
+                        googleUser.sub,
+                        transaction,
+                    );
+                } else {
+                    const { first_name, last_name } =
+                        this.getGoogleUserName(googleUser);
+
+                    user = await this.userService.createFromGoogle(
+                        first_name,
+                        last_name,
+                        email,
+                        googleUser.sub,
+                        transaction,
+                    );
+                }
+            }
+
+            await transaction.commit();
+
+            const session = await this.issueSession(user.id, user.email);
+
+            this.logger.log(
+                `User signed in with Google successfully with email: ${user.email}`,
+            );
+
+            return {
+                message: `User ${user.email} signed in successfully`,
+                data: session,
+            };
+        } catch (error) {
+            await transaction.rollback();
+
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+
+            this.logger.error(
+                `Error signing in with Google for email: ${email}`,
+                error,
+            );
+            throw error;
+        }
+    }
+
+    private async verifyGoogleIdToken(idToken: string): Promise<TokenPayload> {
+        // Comma-separated OAuth client IDs the token may be issued for. The
+        // mobile app passes the Web client ID, so that one is enough.
+        const audience = (process.env.GOOGLE_CLIENT_IDS ?? '')
+            .split(',')
+            .map((id) => id.trim())
+            .filter(Boolean);
+
+        if (audience.length === 0) {
+            this.logger.error('GOOGLE_CLIENT_IDS is not configured');
+            throw new Error('Google sign-in is not configured');
+        }
+
+        let payload: TokenPayload | undefined;
+
+        try {
+            const ticket = await this.googleClient.verifyIdToken({
+                idToken,
+                audience,
+            });
+            payload = ticket.getPayload();
+        } catch (error) {
+            this.logger.warn(
+                `Invalid Google ID token: ${(error as Error).message}`,
+            );
+            throw new UnauthorizedException('Invalid Google token');
+        }
+
+        if (!payload?.sub || !payload.email) {
+            this.logger.warn('Google ID token is missing sub or email');
+            throw new UnauthorizedException('Invalid Google token');
+        }
+
+        if (!payload.email_verified) {
+            this.logger.warn(
+                `Google email is not verified for email: ${payload.email}`,
+            );
+            throw new UnauthorizedException('Google email is not verified');
+        }
+
+        return payload;
+    }
+
+    private async linkGoogleAccount(
+        user: UserModel,
+        googleId: string,
+        transaction: Transaction,
+    ) {
+        if (user.google_id && user.google_id !== googleId) {
+            this.logger.warn(
+                `User is already linked to another Google account: ${user.email}`,
+            );
+            throw new BadRequestException(
+                'This email is already linked to a different Google account.',
+            );
+        }
+
+        this.logger.log(`Linking Google account for user: ${user.email}`);
+
+        // An unverified account was never proven to belong to this email's
+        // owner, so drop its password. Otherwise whoever registered it could
+        // still sign in after the real owner links Google.
+        return user.update(
+            {
+                google_id: googleId,
+                is_email_verified: true,
+                ...(!user.is_email_verified && { password: null }),
+            },
+            { transaction },
+        );
+    }
+
+    private getGoogleUserName(googleUser: TokenPayload) {
+        if (googleUser.given_name) {
+            return {
+                first_name: googleUser.given_name,
+                last_name: googleUser.family_name ?? '',
+            };
+        }
+
+        const [first, ...rest] = (googleUser.name ?? '').trim().split(/\s+/);
+
+        return {
+            first_name: first || googleUser.email!.split('@')[0],
+            last_name: rest.join(' '),
+        };
+    }
+
+    private async issueSession(userId: string, email: string) {
+        const accessToken = this.jwtService.sign({ sub: userId, email });
+        const { rawToken: refreshToken } = await this.issueRefreshToken(userId);
+
+        return { accessToken, refreshToken };
     }
 
     private hashRefreshToken(token: string) {
@@ -640,6 +794,15 @@ export class AuthService {
                 );
             }
 
+            if (!user.password) {
+                this.logger.warn(
+                    `User has no password set (Google sign-in only): ${currentEmail}`,
+                );
+                throw new BadRequestException(
+                    'Your account uses Google sign-in. Set a password via forgot password first.',
+                );
+            }
+
             const isPasswordValid = await bcrypt.compare(
                 dto.password,
                 user.password,
@@ -764,6 +927,15 @@ export class AuthService {
             if (!user) {
                 this.logger.warn(`User not found for email: ${email}`);
                 throw new NotFoundException('User not found.');
+            }
+
+            if (!user.password) {
+                this.logger.warn(
+                    `User has no password set (Google sign-in only): ${email}`,
+                );
+                throw new BadRequestException(
+                    'Your account uses Google sign-in. Set a password via forgot password first.',
+                );
             }
 
             const isPasswordValid = await bcrypt.compare(

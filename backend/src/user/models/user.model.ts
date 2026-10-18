@@ -22,7 +22,8 @@ interface User {
     first_name: string;
     last_name: string;
     email: string;
-    password: string;
+    password: string | null;
+    google_id?: string | null;
     is_email_verified?: boolean;
     created_at?: Date | null;
     updated_at?: Date | null;
@@ -63,9 +64,16 @@ export class UserModel extends Model<User> {
 
     @Column({
         type: DataType.STRING,
-        allowNull: false,
+        allowNull: true,
     })
-    declare password: string;
+    declare password: string | null;
+
+    @Column({
+        type: DataType.STRING,
+        allowNull: true,
+        unique: true,
+    })
+    declare google_id: string | null;
 
     @Column({
         type: DataType.BOOLEAN,
