@@ -418,20 +418,28 @@ export default function RecurringPayments() {
                   </Text>
                   <Text
                     style={{
-                      color: getDueStatusColor(
-                        payment.due_date,
-                        colors,
-                        payment.is_archived ? "Archived" : "Active",
-                      ),
-                      fontWeight: FontWeights.medium,
+                      color:
+                        payment.type === "Bills" && payment.is_paid
+                          ? colors.success
+                          : getDueStatusColor(
+                              payment.due_date,
+                              colors,
+                              payment.is_archived ? "Archived" : "Active",
+                            ),
+                      fontWeight:
+                        payment.type === "Bills" && payment.is_paid
+                          ? FontWeights.bold
+                          : FontWeights.medium,
                       fontSize: FontSizes.tiny,
                       textAlign: "right",
                     }}
                   >
-                    {payment.is_archived ? (
-                      ""
-                    ) : (
+                    {payment.type === "Bills" && payment.is_paid ? (
+                      "PAID"
+                    ) : !payment.is_archived ? (
                       <>{formatDueStatus(payment.due_date)}</>
+                    ) : (
+                      ""
                     )}
                   </Text>
                 </View>
