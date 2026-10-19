@@ -8,9 +8,11 @@
     "scheme": "mobileapp",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "bundleIdentifier": "com.boharidev.mizara",
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "com.boharidev.mizara",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -42,6 +44,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "498ce690-7f08-4907-a0d4-c16c304bf1f9"
+      }
     }
   }
 }

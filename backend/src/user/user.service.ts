@@ -71,6 +71,13 @@ export class UserService {
                 return null;
             }
 
+            if (!user.password) {
+                this.logger.warn(
+                    `Credential validation failed for email: ${email} - User has no password (Google sign-in only)`,
+                );
+                return null;
+            }
+
             const isMatch = await bcrypt.compare(password, user.password);
             if (!isMatch) {
                 this.logger.warn(
@@ -105,6 +112,46 @@ export class UserService {
 
     async findByEmail(email: string) {
         return this.userModel.findOne({ where: { email } });
+    }
+
+    async findByGoogleId(googleId: string) {
+        return this.userModel.findOne({ where: { google_id: googleId } });
+    }
+
+    async createFromGoogle(
+        first_name: string,
+        last_name: string,
+        email: string,
+        googleId: string,
+        transaction: Transaction,
+    ) {
+        try {
+            this.logger.log(`Creating Google user with email: ${email}`);
+
+            // Google has already verified the email, and there is no password.
+            const createdUser = await this.userModel.create(
+                {
+                    first_name,
+                    last_name,
+                    email,
+                    password: null,
+                    google_id: googleId,
+                    is_email_verified: true,
+                },
+                { transaction },
+            );
+
+            this.logger.log(
+                `Successfully created Google user with email: ${createdUser.email}`,
+            );
+            return createdUser;
+        } catch (error) {
+            this.logger.error(
+                `Error creating Google user with email: ${email}`,
+                error,
+            );
+            throw error;
+        }
     }
 
     async findById(id: string) {
