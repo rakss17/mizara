@@ -40,7 +40,7 @@ describe('AuthService', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        process.env.GOOGLE_CLIENT_IDS = 'web-client-id, ios-client-id';
+        process.env.GOOGLE_OAUTH_CLIENT_IDS = 'web-client-id, ios-client-id';
         refreshTokenModel.create.mockResolvedValue({ id: 'rt-1' });
 
         const module: TestingModule = await Test.createTestingModule({

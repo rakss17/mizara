@@ -198,13 +198,13 @@ export class AuthService {
     private async verifyGoogleIdToken(idToken: string): Promise<TokenPayload> {
         // Comma-separated OAuth client IDs the token may be issued for. The
         // mobile app passes the Web client ID, so that one is enough.
-        const audience = (process.env.GOOGLE_CLIENT_IDS ?? '')
+        const audience = (process.env.GOOGLE_OAUTH_CLIENT_IDS ?? '')
             .split(',')
             .map((id) => id.trim())
             .filter(Boolean);
 
         if (audience.length === 0) {
-            this.logger.error('GOOGLE_CLIENT_IDS is not configured');
+            this.logger.error('GOOGLE_OAUTH_CLIENT_IDS is not configured');
             throw new Error('Google sign-in is not configured');
         }
 
