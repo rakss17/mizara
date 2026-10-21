@@ -14,6 +14,7 @@ type AppFieldProps = {
   errorMessage?: string;
   hint?: string;
   required?: boolean;
+  widthRatio?: number;
   children?: ReactNode;
 };
 
@@ -22,6 +23,7 @@ export const AppField = ({
   errorMessage,
   hint,
   required,
+  widthRatio = SCREEN_WIDTH_RATIO,
   children,
 }: AppFieldProps) => {
   const { width, height } = useWindowDimensions();
@@ -35,7 +37,7 @@ export const AppField = ({
         {
           alignItems: "flex-start",
           gap: height * 0.01,
-          width: width * SCREEN_WIDTH_RATIO,
+          width: width * widthRatio,
         },
       ]}
     >

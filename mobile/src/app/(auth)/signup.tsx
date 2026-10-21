@@ -125,6 +125,7 @@ export default function SignUp() {
                 label="First name"
                 errorMessage={errors.firstName?.message}
                 required
+                widthRatio={0.44}
               >
                 <AppInput
                   placeholder="Enter your first name"
@@ -146,6 +147,7 @@ export default function SignUp() {
                 label="Last name"
                 errorMessage={errors.lastName?.message}
                 required
+                widthRatio={0.44}
               >
                 <AppInput
                   placeholder="Enter your last name"
