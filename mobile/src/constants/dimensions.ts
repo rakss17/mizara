@@ -1,1 +1,4 @@
 export const SCREEN_WIDTH_RATIO = 0.9;
+
+export const SCREEN_PADDING_TOP_RATIO = 0.01;
+export const SCREEN_PADDING_BOTTOM_RATIO = 0.01;

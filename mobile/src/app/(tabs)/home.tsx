@@ -5,6 +5,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import NotificationIcon from "@/assets/icons/notification.svg";
 import WalletCardsIcon from "@/assets/icons/wallet-cards.svg";
@@ -18,7 +19,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { FontWeights } from "@/styles/typography";
 import { useTypography } from "@/hooks/useTypography";
 import { OverviewCard } from "@/components/OverviewCard";
-import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
+import { SCREEN_PADDING_TOP_RATIO, SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 import { useOverview } from "@/services/dashboard/hooks";
 import { Badge, Variant } from "@/components/Badge";
 import { useRecurringPayments } from "@/services/recurring-payment/hooks";
@@ -33,6 +34,7 @@ const formatDaysLeft = (daysLeft: number) => {
 export default function Home() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const FontSizes = useTypography();
   const { colors } = useTheme();
   const { overview, errorMessage } = useOverview();
@@ -51,7 +53,7 @@ export default function Home() {
         Styles.container,
         {
           backgroundColor: colors.background,
-          paddingTop: height * 0.01,
+          paddingTop: insets.top + height * SCREEN_PADDING_TOP_RATIO,
           justifyContent: "flex-start",
         },
       ]}

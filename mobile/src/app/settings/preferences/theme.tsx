@@ -6,6 +6,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ArrowLeftIcon from "@/assets/icons/arrow-left.svg";
 import CheckIcon from "@/assets/icons/check.svg";
@@ -19,7 +20,11 @@ import {
 } from "@/contexts/ThemeContext";
 import { useToast } from "@/contexts/ToastContext";
 import { SettingsSkeleton } from "@/components/Skeleton";
-import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
+import {
+  SCREEN_PADDING_BOTTOM_RATIO,
+  SCREEN_PADDING_TOP_RATIO,
+  SCREEN_WIDTH_RATIO,
+} from "@/constants/dimensions";
 import {
   useUpdateUserSettings,
   useUserSettingsOptions,
@@ -37,6 +42,7 @@ export default function ThemePreference() {
   const { colors, themeMode, setThemeMode } = useTheme();
   const { showToast } = useToast();
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const {
     userSettingsOptions,
     isPending: isOptionsLoading,
@@ -65,8 +71,8 @@ export default function ThemePreference() {
         {
           backgroundColor: colors.background,
           justifyContent: "flex-start",
-          paddingTop: height * 0.02,
-          paddingBottom: height * 0.03,
+          paddingTop: insets.top + height * SCREEN_PADDING_TOP_RATIO,
+          paddingBottom: insets.bottom + height * SCREEN_PADDING_BOTTOM_RATIO,
         },
       ]}
     >

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Tabs } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import HomeIcon from "@/assets/icons/home.svg";
 import WalletCardsIcon from "@/assets/icons/wallet-cards.svg";
@@ -12,6 +13,7 @@ export default function TabsLayout() {
   const { colors, hasStoredThemeMode, setThemeMode } = useTheme();
   const FontSizes = useTypography();
   const { userSettings } = useUserSettings();
+  const insets = useSafeAreaInsets();
 
   // Fresh install / new device: adopt the account's theme. A theme already
   // chosen on this device always wins.
@@ -32,9 +34,9 @@ export default function TabsLayout() {
           borderTopColor: colors.border,
           borderTopWidth: 2,
           backgroundColor: colors.background,
-          height: 64,
+          height: 64 + insets.bottom,
           paddingTop: 8,
-          paddingBottom: 8,
+          paddingBottom: 8 + insets.bottom,
         },
         tabBarLabelStyle: {
           fontSize: FontSizes.tiny,

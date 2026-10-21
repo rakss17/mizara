@@ -1,4 +1,5 @@
 import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import CloseIcon from "@/assets/icons/x.svg";
 import { Styles } from "@/styles/stylesheets";
@@ -31,6 +32,7 @@ export const SelectModal = ({
 }: SelectModalProps) => {
   const FontSizes = useTypography();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   const handleSelect = (option: SelectModalOption) => {
     onSelect(option.value);
@@ -54,7 +56,7 @@ export const SelectModal = ({
             backgroundColor: colors.background,
             borderTopLeftRadius: 16,
             borderTopRightRadius: 16,
-            paddingBottom: 20,
+            paddingBottom: insets.bottom + 20,
           }}
         >
           <View

@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Logo from "@/assets/icons/logo.svg";
 import GoogleLogo from "@/assets/icons/google-logo.svg";
@@ -18,13 +19,18 @@ import { AppField } from "@/components/AppInputField/AppField";
 import { AppInput } from "@/components/AppInputField/AppInput";
 import { useGoogleSignIn, useSignIn } from "@/services/auth/hooks";
 import { isGoogleSignInAvailable } from "@/services/auth/google";
-import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
+import {
+  SCREEN_PADDING_BOTTOM_RATIO,
+  SCREEN_PADDING_TOP_RATIO,
+  SCREEN_WIDTH_RATIO,
+} from "@/constants/dimensions";
 
 export default function SignIn() {
   const route = useRouter();
   const FontSizes = useTypography();
   const { colors } = useTheme();
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const [data, setData] = useState({
     email: "",
     password: "",
@@ -56,6 +62,8 @@ export default function SignIn() {
         Styles.container,
         {
           backgroundColor: colors.background,
+          paddingTop: insets.top + height * SCREEN_PADDING_TOP_RATIO,
+          paddingBottom: insets.bottom + height * SCREEN_PADDING_BOTTOM_RATIO,
         },
       ]}
     >

@@ -9,6 +9,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import Checkbox from "expo-checkbox";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import CloseIcon from "@/assets/icons/x.svg";
 import { Styles } from "@/styles/stylesheets";
@@ -62,6 +63,7 @@ export const RecurringPaymentsFilterModal = ({
   const { height } = useWindowDimensions();
   const FontSizes = useTypography();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   const [draft, setDraft] = useState<RecurringPaymentFilters>(filters);
   const [wasVisible, setWasVisible] = useState(visible);
@@ -125,7 +127,7 @@ export const RecurringPaymentsFilterModal = ({
             backgroundColor: colors.background,
             borderTopLeftRadius: 16,
             borderTopRightRadius: 16,
-            paddingBottom: 20,
+            paddingBottom: insets.bottom + 20,
           }}
         >
           <View

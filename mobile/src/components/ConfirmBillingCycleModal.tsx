@@ -9,6 +9,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import CloseIcon from "@/assets/icons/x.svg";
 import { Styles } from "@/styles/stylesheets";
@@ -44,6 +45,7 @@ export const ConfirmBillingCycleModal = ({
 }: ConfirmBillingCycleModalProps) => {
   const FontSizes = useTypography();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { showToast } = useToast();
   const { width, height } = useWindowDimensions();
   const { confirmBillingCycle, isPending, errorMessage } =
@@ -123,7 +125,7 @@ export const ConfirmBillingCycleModal = ({
             backgroundColor: colors.background,
             borderTopLeftRadius: 16,
             borderTopRightRadius: 16,
-            paddingBottom: 30,
+            paddingBottom: insets.bottom + 30,
             alignItems: "center",
           }}
         >

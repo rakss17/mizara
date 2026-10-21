@@ -1,6 +1,7 @@
 import { Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ArrowLeftIcon from "@/assets/icons/arrow-left.svg";
 import { useTypography } from "@/hooks/useTypography";
@@ -9,7 +10,11 @@ import { FontWeights } from "@/styles/typography";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useToast } from "@/contexts/ToastContext";
 import { RecurringPaymentForm } from "@/components/RecurringPaymentForm";
-import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
+import {
+  SCREEN_PADDING_BOTTOM_RATIO,
+  SCREEN_PADDING_TOP_RATIO,
+  SCREEN_WIDTH_RATIO,
+} from "@/constants/dimensions";
 import type { CreateRecurringPaymentFormData } from "@/schemas/recurring-payment";
 import { useCreateRecurringPayment } from "@/services/recurring-payment/hooks";
 import type { CreateRecurringPaymentPayload } from "@/services/recurring-payment/types";
@@ -21,6 +26,7 @@ export default function AddRecurringPayment() {
   const { colors } = useTheme();
   const { showToast } = useToast();
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const {
     createRecurringPayment,
     isPending: isCreating,
@@ -84,8 +90,8 @@ export default function AddRecurringPayment() {
         {
           backgroundColor: colors.background,
           justifyContent: "flex-start",
-          paddingTop: height * 0.02,
-          paddingBottom: height * 0.01,
+          paddingTop: insets.top + height * SCREEN_PADDING_TOP_RATIO,
+          paddingBottom: insets.bottom + height * SCREEN_PADDING_BOTTOM_RATIO,
         },
       ]}
     >

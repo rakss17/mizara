@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -20,7 +21,11 @@ import { useToast } from "@/contexts/ToastContext";
 import { AppField } from "@/components/AppInputField/AppField";
 import { AppInput } from "@/components/AppInputField/AppInput";
 import { RecurringPaymentFormSkeleton } from "@/components/Skeleton";
-import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
+import {
+  SCREEN_PADDING_BOTTOM_RATIO,
+  SCREEN_PADDING_TOP_RATIO,
+  SCREEN_WIDTH_RATIO,
+} from "@/constants/dimensions";
 import {
   updateProfileSchema,
   type UpdateProfileFormData,
@@ -34,6 +39,7 @@ export default function EditProfile() {
   const { colors } = useTheme();
   const { showToast } = useToast();
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const {
     myProfile,
     isPending: isProfileLoading,
@@ -83,8 +89,8 @@ export default function EditProfile() {
         {
           backgroundColor: colors.background,
           justifyContent: "flex-start",
-          paddingTop: height * 0.02,
-          paddingBottom: height * 0.01,
+          paddingTop: insets.top + height * SCREEN_PADDING_TOP_RATIO,
+          paddingBottom: insets.bottom + height * SCREEN_PADDING_BOTTOM_RATIO,
         },
       ]}
     >
