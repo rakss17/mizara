@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useColorScheme as useSystemColorScheme } from "react-native";
+import { NavigationBar } from "expo-navigation-bar";
 import * as SecureStore from "expo-secure-store";
 import * as SystemUI from "expo-system-ui";
 
@@ -64,6 +65,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(Colors[colorScheme].background);
+    NavigationBar.setStyle(colorScheme === "dark" ? "light" : "dark");
   }, [colorScheme]);
 
   const value = useMemo<ThemeContextValue>(
