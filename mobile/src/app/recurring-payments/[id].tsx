@@ -21,7 +21,11 @@ import { Styles } from "@/styles/stylesheets";
 import { FontWeights } from "@/styles/typography";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useToast } from "@/contexts/ToastContext";
-import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
+import {
+  SCREEN_PADDING_BOTTOM_RATIO,
+  SCREEN_PADDING_TOP_RATIO,
+  SCREEN_WIDTH_RATIO,
+} from "@/constants/dimensions";
 import { Badge, Variant } from "@/components/Badge";
 import { RecurringPaymentDetailSkeleton } from "@/components/Skeleton";
 import { ConfirmBillingCycleModal } from "@/components/ConfirmBillingCycleModal";
@@ -272,7 +276,7 @@ export default function RecurringPaymentDetails() {
         {
           backgroundColor: colors.background,
           justifyContent: "flex-start",
-          paddingTop: insets.top + height * 0.02,
+          paddingTop: insets.top + height * SCREEN_PADDING_TOP_RATIO,
         },
       ]}
     >
@@ -339,7 +343,7 @@ export default function RecurringPaymentDetails() {
             {
               width: width * SCREEN_WIDTH_RATIO,
               gap: height * 0.02,
-              paddingBottom: height * 0.03,
+              paddingBottom: insets.bottom + height * SCREEN_PADDING_BOTTOM_RATIO,
             },
           ]}
         >

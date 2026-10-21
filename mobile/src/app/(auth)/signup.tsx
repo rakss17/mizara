@@ -8,6 +8,7 @@ import {
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import Checkbox from "expo-checkbox";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -18,7 +19,11 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useToast } from "@/contexts/ToastContext";
 import { AppField } from "@/components/AppInputField/AppField";
 import { AppInput } from "@/components/AppInputField/AppInput";
-import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
+import {
+  SCREEN_PADDING_BOTTOM_RATIO,
+  SCREEN_PADDING_TOP_RATIO,
+  SCREEN_WIDTH_RATIO,
+} from "@/constants/dimensions";
 import { signUpSchema, type SignUpFormData } from "@/schemas/signup";
 import { useSignUp } from "@/services/auth/hooks";
 import ArrowLeft from "@/assets/icons/arrow-left.svg";
@@ -30,6 +35,7 @@ export default function SignUp() {
   const { colors } = useTheme();
   const { showToast } = useToast();
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const { signUp, isPending, errorMessage } = useSignUp();
   const {
     control,
@@ -70,7 +76,8 @@ export default function SignUp() {
         {
           backgroundColor: colors.background,
           justifyContent: "flex-start",
-          paddingTop: height * 0.015,
+          paddingTop: insets.top + height * SCREEN_PADDING_TOP_RATIO,
+          paddingBottom: insets.bottom + height * SCREEN_PADDING_BOTTOM_RATIO,
         },
       ]}
     >
@@ -125,6 +132,7 @@ export default function SignUp() {
                 label="First name"
                 errorMessage={errors.firstName?.message}
                 required
+                widthRatio={0.44}
               >
                 <AppInput
                   placeholder="Enter your first name"
@@ -146,6 +154,7 @@ export default function SignUp() {
                 label="Last name"
                 errorMessage={errors.lastName?.message}
                 required
+                widthRatio={0.44}
               >
                 <AppInput
                   placeholder="Enter your last name"

@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import NotificationIcon from "@/assets/icons/notification.svg";
 import FilterIcon from "@/assets/icons/filter.svg";
@@ -19,7 +20,7 @@ import { Styles } from "@/styles/stylesheets";
 import { useTypography } from "@/hooks/useTypography";
 import { useTheme } from "@/contexts/ThemeContext";
 import { FontWeights } from "@/styles/typography";
-import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
+import { SCREEN_PADDING_TOP_RATIO, SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 import { SearchBar } from "@/components/SearchBar";
 import {
   RecurringPaymentsFilterModal,
@@ -50,6 +51,7 @@ const PAGE_LIMIT = 10;
 export default function RecurringPayments() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const FontSizes = useTypography();
   const { colors } = useTheme();
   const [search, setSearch] = useState("");
@@ -93,7 +95,7 @@ export default function RecurringPayments() {
         Styles.container,
         {
           backgroundColor: colors.background,
-          paddingTop: height * 0.01,
+          paddingTop: insets.top + height * SCREEN_PADDING_TOP_RATIO,
           justifyContent: "flex-start",
         },
       ]}

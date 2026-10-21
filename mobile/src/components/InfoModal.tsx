@@ -1,4 +1,5 @@
 import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import CloseIcon from "@/assets/icons/x.svg";
 import { Styles } from "@/styles/stylesheets";
@@ -22,6 +23,7 @@ export const InfoModal = ({
 }: InfoModalProps) => {
   const FontSizes = useTypography();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Modal
@@ -40,7 +42,7 @@ export const InfoModal = ({
             backgroundColor: colors.background,
             borderTopLeftRadius: 16,
             borderTopRightRadius: 16,
-            paddingBottom: 30,
+            paddingBottom: insets.bottom + 30,
           }}
         >
           <View

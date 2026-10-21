@@ -17,7 +17,7 @@ import { FontWeights } from "@/styles/typography";
 import { useTypography } from "@/hooks/useTypography";
 import { useTheme, type ThemeMode } from "@/contexts/ThemeContext";
 import { useToast } from "@/contexts/ToastContext";
-import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
+import { SCREEN_PADDING_TOP_RATIO, SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
 import {
   useMyProfile,
   useUserSettings,
@@ -111,7 +111,7 @@ export default function Settings() {
         Styles.container,
         {
           backgroundColor: colors.background,
-          paddingTop: insets.top + height * 0.01,
+          paddingTop: insets.top + height * SCREEN_PADDING_TOP_RATIO,
           justifyContent: "flex-start",
         },
       ]}

@@ -8,6 +8,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ArrowLeftIcon from "@/assets/icons/arrow-left.svg";
 import CheckIcon from "@/assets/icons/check.svg";
@@ -17,7 +18,11 @@ import { FontWeights } from "@/styles/typography";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useToast } from "@/contexts/ToastContext";
 import { SettingsSkeleton } from "@/components/Skeleton";
-import { SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
+import {
+  SCREEN_PADDING_BOTTOM_RATIO,
+  SCREEN_PADDING_TOP_RATIO,
+  SCREEN_WIDTH_RATIO,
+} from "@/constants/dimensions";
 import {
   useUpdateUserSettings,
   useUserSettings,
@@ -30,6 +35,7 @@ export default function TimezonePreference() {
   const { colors } = useTheme();
   const { showToast } = useToast();
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const {
     userSettings,
     isPending: isSettingsLoading,
@@ -76,8 +82,8 @@ export default function TimezonePreference() {
         {
           backgroundColor: colors.background,
           justifyContent: "flex-start",
-          paddingTop: height * 0.02,
-          paddingBottom: height * 0.03,
+          paddingTop: insets.top + height * SCREEN_PADDING_TOP_RATIO,
+          paddingBottom: insets.bottom + height * SCREEN_PADDING_BOTTOM_RATIO,
         },
       ]}
     >
