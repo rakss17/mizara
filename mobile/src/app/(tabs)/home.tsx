@@ -270,8 +270,8 @@ export default function Home() {
                 style={[
                   Styles.flexRow,
                   {
-                    gap: 7,
-                    width: width * 0.25,
+                    gap: 5,
+                    width: width * 0.22,
                     justifyContent: "flex-start",
                   },
                 ]}

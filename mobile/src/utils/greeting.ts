@@ -2,7 +2,7 @@
 const getCurrentHour = (timeZone?: string) => {
   const now = new Date();
   if (!timeZone) return now.getHours();
-  console.log("time zone: ", timeZone);
+
   try {
     const hour = new Intl.DateTimeFormat("en-US", {
       hour: "numeric",
