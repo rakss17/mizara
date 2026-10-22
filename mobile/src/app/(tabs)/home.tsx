@@ -24,6 +24,8 @@ import { useOverview } from "@/services/dashboard/hooks";
 import { Badge, Variant } from "@/components/Badge";
 import { useRecurringPayments } from "@/services/recurring-payment/hooks";
 import { getStartOfTomorrow } from "@/utils/recurring-payment";
+import { useMyProfile, useUserSettings } from "@/services/user/hooks";
+import { getGreeting } from "@/utils/greeting";
 
 const formatDaysLeft = (daysLeft: number) => {
   if (daysLeft <= 0) return "Today";
@@ -44,6 +46,12 @@ export default function Home() {
     is_archived: false,
     limit: 5,
   });
+
+  const { myProfile } = useMyProfile();
+  const { userSettings } = useUserSettings();
+
+  const greeting = getGreeting(userSettings?.timezone.key);
+  const firstName = myProfile?.first_name?.trim();
 
   const upcomingDues = overview?.upcoming_due ?? [];
 
@@ -76,7 +84,7 @@ export default function Home() {
               fontSize: FontSizes.xLarge,
             }}
           >
-            Good morning, Bohari!
+            {firstName ? `${greeting}, ${firstName}!` : `${greeting}!`}
           </Text>
           <Text
             style={{
