@@ -1,4 +1,5 @@
 import {
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
@@ -19,7 +20,11 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { FontWeights } from "@/styles/typography";
 import { useTypography } from "@/hooks/useTypography";
 import { OverviewCard } from "@/components/OverviewCard";
-import { SCREEN_PADDING_TOP_RATIO, SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
+import {
+  SCREEN_PADDING_BOTTOM_RATIO,
+  SCREEN_PADDING_TOP_RATIO,
+  SCREEN_WIDTH_RATIO,
+} from "@/constants/dimensions";
 import { useOverview } from "@/services/dashboard/hooks";
 import { Badge, Variant } from "@/components/Badge";
 import { useRecurringPayments } from "@/services/recurring-payment/hooks";
@@ -56,12 +61,15 @@ export default function Home() {
   const upcomingDues = overview?.upcoming_due ?? [];
 
   return (
-    <View
-      style={[
+    <ScrollView
+      style={{ backgroundColor: colors.background }}
+      contentContainerStyle={[
         Styles.container,
         {
-          backgroundColor: colors.background,
+          flex: undefined,
+          flexGrow: 1,
           paddingTop: insets.top + height * SCREEN_PADDING_TOP_RATIO,
+          paddingBottom: height * SCREEN_PADDING_BOTTOM_RATIO,
           justifyContent: "flex-start",
         },
       ]}
@@ -307,6 +315,6 @@ export default function Home() {
           ))}
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
