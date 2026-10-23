@@ -22,6 +22,7 @@ import { FontWeights } from "@/styles/typography";
 import { useTypography } from "@/hooks/useTypography";
 import { useRefresh } from "@/hooks/useRefresh";
 import { OverviewCard } from "@/components/OverviewCard";
+import { Skeleton, UpcomingDueListSkeleton } from "@/components/Skeleton";
 import {
   SCREEN_PADDING_BOTTOM_RATIO,
   SCREEN_PADDING_TOP_RATIO,
@@ -46,7 +47,11 @@ export default function Home() {
   const insets = useSafeAreaInsets();
   const FontSizes = useTypography();
   const { colors } = useTheme();
-  const { overview, errorMessage, refetch: refetchOverview } = useOverview();
+  const {
+    overview,
+    isPending: isOverviewPending,
+    refetch: refetchOverview,
+  } = useOverview();
 
   const {
     recurringPayments: pendingConfirmations,
@@ -57,8 +62,16 @@ export default function Home() {
     limit: 5,
   });
 
-  const { myProfile, refetch: refetchMyProfile } = useMyProfile();
-  const { userSettings, refetch: refetchUserSettings } = useUserSettings();
+  const {
+    myProfile,
+    isPending: isProfilePending,
+    refetch: refetchMyProfile,
+  } = useMyProfile();
+  const {
+    userSettings,
+    isPending: isSettingsPending,
+    refetch: refetchUserSettings,
+  } = useUserSettings();
   const { isRefreshing, onRefresh } = useRefresh([
     refetchOverview,
     refetchPendingConfirmations,
@@ -105,15 +118,19 @@ export default function Home() {
         ]}
       >
         <View style={{ gap: 3 }}>
-          <Text
-            style={{
-              color: colors.textPrimary,
-              fontWeight: FontWeights.bold,
-              fontSize: FontSizes.xLarge,
-            }}
-          >
-            {firstName ? `${greeting}, ${firstName}!` : `${greeting}!`}
-          </Text>
+          {isProfilePending || isSettingsPending ? (
+            <Skeleton width={width * 0.6} height={FontSizes.xLarge * 1.2} />
+          ) : (
+            <Text
+              style={{
+                color: colors.textPrimary,
+                fontWeight: FontWeights.bold,
+                fontSize: FontSizes.xLarge,
+              }}
+            >
+              {firstName ? `${greeting}, ${firstName}!` : `${greeting}!`}
+            </Text>
+          )}
           <Text
             style={{
               color: colors.textSecondary,
@@ -138,6 +155,7 @@ export default function Home() {
           title="Total Active Payments"
           value={overview?.total ?? "0"}
           backgroundColor={colors.overviewBgBlue}
+          isLoading={isOverviewPending}
           color={colors.overviewFontBlue}
           icon={
             <WalletCardsIcon color={colors.primary} width={20} height={20} />
@@ -147,6 +165,7 @@ export default function Home() {
           title="Upcoming This Week"
           value={overview?.total_upcoming_this_week ?? "0"}
           backgroundColor={colors.overviewBgGreen}
+          isLoading={isOverviewPending}
           color={colors.overviewFontGreen}
           icon={<CalendarDaysIcon width={20} height={20} />}
         />
@@ -154,6 +173,7 @@ export default function Home() {
           title="Free Trials Ending"
           value={overview?.free_trials_ending ?? "0"}
           backgroundColor={colors.overviewBgYellow}
+          isLoading={isOverviewPending}
           color={colors.overviewFontYellow}
           icon={<HourglassIcon width={20} height={20} />}
         />
@@ -161,6 +181,7 @@ export default function Home() {
           title="Current Month Spending"
           value={overview?.current_month_spending ?? "0"}
           backgroundColor={colors.overviewBgPurple}
+          isLoading={isOverviewPending}
           color={colors.overviewFontPurple}
           icon={<BanknoteIcon width={20} height={20} />}
         />
@@ -262,7 +283,8 @@ export default function Home() {
             gap: 10,
           }}
         >
-          {upcomingDues.length === 0 && (
+          {isOverviewPending && <UpcomingDueListSkeleton />}
+          {!isOverviewPending && upcomingDues.length === 0 && (
             <Text
               style={{
                 fontSize: FontSizes.small,
