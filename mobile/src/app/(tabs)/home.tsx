@@ -1,4 +1,5 @@
 import {
+  RefreshControl,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -19,6 +20,7 @@ import { Styles } from "@/styles/stylesheets";
 import { useTheme } from "@/contexts/ThemeContext";
 import { FontWeights } from "@/styles/typography";
 import { useTypography } from "@/hooks/useTypography";
+import { useRefresh } from "@/hooks/useRefresh";
 import { OverviewCard } from "@/components/OverviewCard";
 import {
   SCREEN_PADDING_BOTTOM_RATIO,
@@ -44,16 +46,25 @@ export default function Home() {
   const insets = useSafeAreaInsets();
   const FontSizes = useTypography();
   const { colors } = useTheme();
-  const { overview, errorMessage } = useOverview();
+  const { overview, errorMessage, refetch: refetchOverview } = useOverview();
 
-  const { recurringPayments: pendingConfirmations } = useRecurringPayments({
+  const {
+    recurringPayments: pendingConfirmations,
+    refetch: refetchPendingConfirmations,
+  } = useRecurringPayments({
     confirmation_due_before: getStartOfTomorrow().toISOString(),
     is_archived: false,
     limit: 5,
   });
 
-  const { myProfile } = useMyProfile();
-  const { userSettings } = useUserSettings();
+  const { myProfile, refetch: refetchMyProfile } = useMyProfile();
+  const { userSettings, refetch: refetchUserSettings } = useUserSettings();
+  const { isRefreshing, onRefresh } = useRefresh([
+    refetchOverview,
+    refetchPendingConfirmations,
+    refetchMyProfile,
+    refetchUserSettings,
+  ]);
 
   const greeting = getGreeting(userSettings?.timezone.key);
   const firstName = myProfile?.first_name?.trim();
@@ -63,6 +74,15 @@ export default function Home() {
   return (
     <ScrollView
       style={{ backgroundColor: colors.background }}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={onRefresh}
+          colors={[colors.primary]}
+          tintColor={colors.primary}
+          progressBackgroundColor={colors.background}
+        />
+      }
       contentContainerStyle={[
         Styles.container,
         {

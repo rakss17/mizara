@@ -10,7 +10,7 @@ import {
 import { getErrorMessage } from "../get-error-message";
 
 export const useMyProfile = () => {
-  const { data, isPending, error } = useQuery({
+  const { data, isPending, error, refetch } = useQuery({
     queryKey: ["my-profile"],
     queryFn: () => getMyProfileApi(),
   });
@@ -21,6 +21,7 @@ export const useMyProfile = () => {
     myProfile: data?.data,
     isPending,
     errorMessage,
+    refetch,
   };
 };
 
@@ -46,7 +47,7 @@ export const useUpdateMyProfile = () => {
 };
 
 export const useUserSettings = () => {
-  const { data, isPending, error } = useQuery({
+  const { data, isPending, error, refetch } = useQuery({
     queryKey: ["user-settings"],
     queryFn: () => getUserSettingsApi(),
   });
@@ -57,6 +58,7 @@ export const useUserSettings = () => {
     userSettings: data?.data,
     isPending,
     errorMessage,
+    refetch,
   };
 };
 

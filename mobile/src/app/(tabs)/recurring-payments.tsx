@@ -6,6 +6,7 @@ import {
   useWindowDimensions,
   FlatList,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -18,6 +19,7 @@ import WalletCardsIcon from "@/assets/icons/wallet-cards.svg";
 import PlusIcon from "@/assets/icons/plus.svg";
 import { Styles } from "@/styles/stylesheets";
 import { useTypography } from "@/hooks/useTypography";
+import { useRefresh } from "@/hooks/useRefresh";
 import { useTheme } from "@/contexts/ThemeContext";
 import { FontWeights } from "@/styles/typography";
 import { SCREEN_PADDING_TOP_RATIO, SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
@@ -72,6 +74,7 @@ export default function RecurringPayments() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    refetch,
   } = useRecurringPayments({
     limit: PAGE_LIMIT,
     search: debouncedSearch || undefined,
@@ -80,6 +83,7 @@ export default function RecurringPayments() {
     ...filters,
     is_archived: filters.is_archived ?? false,
   });
+  const { isRefreshing, onRefresh } = useRefresh([refetch]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -294,6 +298,15 @@ export default function RecurringPayments() {
             }
           }}
           onEndReachedThreshold={0.5}
+          refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+            progressBackgroundColor={colors.background}
+          />
+          }
           ListEmptyComponent={
             <Text
               style={{
