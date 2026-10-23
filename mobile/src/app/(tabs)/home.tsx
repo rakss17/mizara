@@ -1,4 +1,5 @@
 import {
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
@@ -19,11 +20,17 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { FontWeights } from "@/styles/typography";
 import { useTypography } from "@/hooks/useTypography";
 import { OverviewCard } from "@/components/OverviewCard";
-import { SCREEN_PADDING_TOP_RATIO, SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
+import {
+  SCREEN_PADDING_BOTTOM_RATIO,
+  SCREEN_PADDING_TOP_RATIO,
+  SCREEN_WIDTH_RATIO,
+} from "@/constants/dimensions";
 import { useOverview } from "@/services/dashboard/hooks";
 import { Badge, Variant } from "@/components/Badge";
 import { useRecurringPayments } from "@/services/recurring-payment/hooks";
 import { getStartOfTomorrow } from "@/utils/recurring-payment";
+import { useMyProfile, useUserSettings } from "@/services/user/hooks";
+import { getGreeting } from "@/utils/greeting";
 
 const formatDaysLeft = (daysLeft: number) => {
   if (daysLeft <= 0) return "Today";
@@ -45,15 +52,24 @@ export default function Home() {
     limit: 5,
   });
 
+  const { myProfile } = useMyProfile();
+  const { userSettings } = useUserSettings();
+
+  const greeting = getGreeting(userSettings?.timezone.key);
+  const firstName = myProfile?.first_name?.trim();
+
   const upcomingDues = overview?.upcoming_due ?? [];
 
   return (
-    <View
-      style={[
+    <ScrollView
+      style={{ backgroundColor: colors.background }}
+      contentContainerStyle={[
         Styles.container,
         {
-          backgroundColor: colors.background,
+          flex: undefined,
+          flexGrow: 1,
           paddingTop: insets.top + height * SCREEN_PADDING_TOP_RATIO,
+          paddingBottom: height * SCREEN_PADDING_BOTTOM_RATIO,
           justifyContent: "flex-start",
         },
       ]}
@@ -76,7 +92,7 @@ export default function Home() {
               fontSize: FontSizes.xLarge,
             }}
           >
-            Good morning, Bohari!
+            {firstName ? `${greeting}, ${firstName}!` : `${greeting}!`}
           </Text>
           <Text
             style={{
@@ -254,8 +270,8 @@ export default function Home() {
                 style={[
                   Styles.flexRow,
                   {
-                    gap: 7,
-                    width: width * 0.25,
+                    gap: 5,
+                    width: width * 0.22,
                     justifyContent: "flex-start",
                   },
                 ]}
@@ -299,6 +315,6 @@ export default function Home() {
           ))}
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
