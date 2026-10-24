@@ -1,9 +1,11 @@
 import { useEffect } from "react";
-import { Tabs } from "expo-router";
+import { Pressable, Text, View } from "react-native";
+import { Tabs, router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import HomeIcon from "@/assets/icons/home.svg";
 import WalletCardsIcon from "@/assets/icons/wallet-cards.svg";
+import PlusIcon from "@/assets/icons/plus.svg";
 import NotificationIcon from "@/assets/icons/notification.svg";
 import SettingsIcon from "@/assets/icons/settings.svg";
 import { isThemeMode, useTheme } from "@/contexts/ThemeContext";
@@ -39,9 +41,6 @@ export default function TabsLayout() {
           paddingTop: 8,
           paddingBottom: 8 + insets.bottom,
         },
-        tabBarLabelStyle: {
-          fontSize: FontSizes.tiny,
-        },
       }}
     >
       <Tabs.Screen
@@ -56,6 +55,47 @@ export default function TabsLayout() {
         options={{
           title: "Payments",
           tabBarIcon: ({ color }) => <WalletCardsIcon color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="add"
+        options={{
+          title: "Add",
+          tabBarShowLabel: false,
+          tabBarButton: ({ onPress, accessibilityState }) => (
+            <View
+              style={{
+                flex: 0.8,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Pressable
+                onPress={onPress}
+                accessibilityRole="button"
+                accessibilityLabel="Add recurring payment"
+                accessibilityState={accessibilityState}
+                style={({ pressed }) => ({
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                  backgroundColor: colors.primary,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: pressed ? 0.8 : 1,
+                })}
+              >
+                <PlusIcon color={colors.surface} />
+              </Pressable>
+            </View>
+          ),
+        }}
+        listeners={{
+          tabPress: (e) => {
+            // Open the add modal instead of switching to the placeholder tab.
+            e.preventDefault();
+            router.push("/recurring-payments/add");
+          },
         }}
       />
       <Tabs.Screen
