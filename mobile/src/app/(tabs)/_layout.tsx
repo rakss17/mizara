@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import HomeIcon from "@/assets/icons/home.svg";
 import WalletCardsIcon from "@/assets/icons/wallet-cards.svg";
+import NotificationIcon from "@/assets/icons/notification.svg";
 import SettingsIcon from "@/assets/icons/settings.svg";
 import { isThemeMode, useTheme } from "@/contexts/ThemeContext";
 import { useTypography } from "@/hooks/useTypography";
@@ -53,8 +54,15 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="recurring-payments"
         options={{
-          title: "Recurring Payments",
+          title: "Payments",
           tabBarIcon: ({ color }) => <WalletCardsIcon color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          title: "Notifications",
+          tabBarIcon: ({ color }) => <NotificationIcon color={color} />,
         }}
       />
       <Tabs.Screen
