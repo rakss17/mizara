@@ -11,7 +11,7 @@ const isNotFoundError = (error: unknown) =>
   isAxiosError(error) && error.response?.status === 404;
 
 export const useReminderSettings = (recurringPaymentId: string) => {
-  const { data, isPending, error } = useQuery({
+  const { data, isPending, error, refetch } = useQuery({
     queryKey: ["reminder-settings", recurringPaymentId],
     queryFn: () => getReminderSettingsApi(recurringPaymentId),
     enabled: !!recurringPaymentId,
@@ -24,6 +24,7 @@ export const useReminderSettings = (recurringPaymentId: string) => {
     reminderSettings: data?.data ?? null,
     isPending,
     errorMessage,
+    refetch,
   };
 };
 

@@ -193,3 +193,23 @@ export const SettingsSkeleton = () => {
     </Animated.View>
   );
 };
+
+export const UpcomingDueListSkeleton = ({ count = 3 }: { count?: number }) => (
+  <Animated.View style={{ gap: 10 }}>
+    {Array.from({ length: count }).map((_, index) => (
+      <Animated.View
+        key={index}
+        style={[Styles.flexRow, { justifyContent: "space-between" }]}
+      >
+        <Animated.View style={[Styles.flexRow, { gap: 5 }]}>
+          <Skeleton width={24} height={24} borderRadius={6} />
+          <Skeleton width={80} height={14} />
+        </Animated.View>
+        <Animated.View style={[Styles.flexRow, { gap: 10 }]}>
+          <Skeleton width={70} height={14} />
+          <Skeleton width={50} height={14} />
+        </Animated.View>
+      </Animated.View>
+    ))}
+  </Animated.View>
+);

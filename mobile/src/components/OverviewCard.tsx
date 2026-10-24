@@ -3,6 +3,7 @@ import { Text, View, useWindowDimensions } from "react-native";
 import { Styles } from "@/styles/stylesheets";
 import { FontWeights } from "@/styles/typography";
 import { useTypography } from "@/hooks/useTypography";
+import { Skeleton } from "@/components/Skeleton";
 
 interface OverviewCardProps {
   title: string;
@@ -10,6 +11,7 @@ interface OverviewCardProps {
   icon: React.ReactNode;
   backgroundColor: string;
   color: string;
+  isLoading?: boolean;
 }
 
 export const OverviewCard = ({
@@ -18,6 +20,7 @@ export const OverviewCard = ({
   icon,
   backgroundColor,
   color,
+  isLoading = false,
 }: OverviewCardProps) => {
   const { width, height } = useWindowDimensions();
   const FontSizes = useTypography();
@@ -56,15 +59,19 @@ export const OverviewCard = ({
         {icon}
       </View>
 
-      <Text
-        style={{
-          color,
-          fontSize: FontSizes.large,
-          fontWeight: FontWeights.bold,
-        }}
-      >
-        {value}
-      </Text>
+      {isLoading ? (
+        <Skeleton width="50%" height={FontSizes.large} />
+      ) : (
+        <Text
+          style={{
+            color,
+            fontSize: FontSizes.large,
+            fontWeight: FontWeights.bold,
+          }}
+        >
+          {value}
+        </Text>
+      )}
     </View>
   );
 };

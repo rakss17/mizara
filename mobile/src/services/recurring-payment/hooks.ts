@@ -26,6 +26,7 @@ export const useRecurringPayments = (
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    refetch,
   } = useInfiniteQuery({
     queryKey: ["recurring-payments", params],
     queryFn: ({ pageParam }) =>
@@ -47,6 +48,7 @@ export const useRecurringPayments = (
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    refetch,
   };
 };
 
@@ -75,7 +77,7 @@ export const useCreateRecurringPayment = () => {
 };
 
 export const useRecurringPayment = (id: string) => {
-  const { data, isPending, error } = useQuery({
+  const { data, isPending, error, refetch } = useQuery({
     queryKey: ["recurring-payment", id],
     queryFn: () => getRecurringPaymentApi(id),
     enabled: !!id,
@@ -87,6 +89,7 @@ export const useRecurringPayment = (id: string) => {
     recurringPayment: data?.data,
     isPending,
     errorMessage,
+    refetch,
   };
 };
 

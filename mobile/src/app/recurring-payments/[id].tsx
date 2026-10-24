@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  RefreshControl,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -17,6 +18,7 @@ import SquarePenIcon from "@/assets/icons/square-pen.svg";
 import WalletCardsIcon from "@/assets/icons/wallet-cards.svg";
 import TriangleAlertIcon from "@/assets/icons/triangle-alert.svg";
 import { useTypography } from "@/hooks/useTypography";
+import { useRefresh } from "@/hooks/useRefresh";
 import { Styles } from "@/styles/stylesheets";
 import { FontWeights } from "@/styles/typography";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -64,8 +66,18 @@ export default function RecurringPaymentDetails() {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { categories } = useCategories();
-  const { recurringPayment, isPending, errorMessage } = useRecurringPayment(id);
-  const { reminderSettings } = useReminderSettings(id);
+  const {
+    recurringPayment,
+    isPending,
+    errorMessage,
+    refetch: refetchRecurringPayment,
+  } = useRecurringPayment(id);
+  const { reminderSettings, refetch: refetchReminderSettings } =
+    useReminderSettings(id);
+  const { isRefreshing, onRefresh } = useRefresh([
+    refetchRecurringPayment,
+    refetchReminderSettings,
+  ]);
   const {
     updateRecurringPayment,
     isPending: isUpdating,
@@ -338,6 +350,15 @@ export default function RecurringPaymentDetails() {
         </Text>
       ) : (
         <ScrollView
+          refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+            progressBackgroundColor={colors.background}
+          />
+          }
           contentContainerStyle={[
             Styles.flexColumn,
             {
