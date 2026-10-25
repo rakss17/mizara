@@ -13,6 +13,7 @@ import { ReminderModule } from './reminder/reminder.module';
 import { CategoryModule } from './category/category.module';
 import { TransformInterceptor } from '@/common/interceptors/transform.interceptor';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
     providers: [
@@ -58,6 +59,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
         ReminderModule,
         CategoryModule,
         DashboardModule,
+        NotificationModule,
     ],
 })
 export class AppModule {}
