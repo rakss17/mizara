@@ -17,7 +17,10 @@ import { FontWeights } from "@/styles/typography";
 import { useTypography } from "@/hooks/useTypography";
 import { useTheme, type ThemeMode } from "@/contexts/ThemeContext";
 import { useToast } from "@/contexts/ToastContext";
-import { SCREEN_PADDING_TOP_RATIO, SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
+import {
+  SCREEN_PADDING_TOP_RATIO,
+  SCREEN_WIDTH_RATIO,
+} from "@/constants/dimensions";
 import {
   useMyProfile,
   useUserSettings,
@@ -116,30 +119,17 @@ export default function Settings() {
         },
       ]}
     >
-      <View
-        style={[
-          Styles.flexRow,
-          {
-            width: width * SCREEN_WIDTH_RATIO,
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-          },
-        ]}
+      <Text
+        style={{
+          color: colors.textPrimary,
+          fontWeight: FontWeights.bold,
+          fontSize: FontSizes.xLarge,
+          textAlign: "left",
+          width: width * SCREEN_WIDTH_RATIO,
+        }}
       >
-        <Text
-          style={{
-            color: colors.textPrimary,
-            fontWeight: FontWeights.bold,
-            fontSize: FontSizes.xLarge,
-          }}
-        >
-          Settings
-        </Text>
-        <TouchableOpacity style={{ marginTop: height * 0.01 }}>
-          <NotificationIcon />
-        </TouchableOpacity>
-      </View>
-
+        Settings
+      </Text>
       <View
         style={{
           width: width * SCREEN_WIDTH_RATIO,

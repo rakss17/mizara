@@ -21,7 +21,10 @@ import { useTypography } from "@/hooks/useTypography";
 import { useRefresh } from "@/hooks/useRefresh";
 import { useTheme } from "@/contexts/ThemeContext";
 import { FontWeights } from "@/styles/typography";
-import { SCREEN_PADDING_TOP_RATIO, SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
+import {
+  SCREEN_PADDING_TOP_RATIO,
+  SCREEN_WIDTH_RATIO,
+} from "@/constants/dimensions";
 import { SearchBar } from "@/components/SearchBar";
 import {
   RecurringPaymentsFilterModal,
@@ -103,29 +106,17 @@ export default function RecurringPayments() {
         },
       ]}
     >
-      <View
-        style={[
-          Styles.flexRow,
-          {
-            width: width * SCREEN_WIDTH_RATIO,
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-          },
-        ]}
+      <Text
+        style={{
+          color: colors.textPrimary,
+          fontWeight: FontWeights.bold,
+          fontSize: FontSizes.xLarge,
+          textAlign: "left",
+          width: width * SCREEN_WIDTH_RATIO,
+        }}
       >
-        <Text
-          style={{
-            color: colors.textPrimary,
-            fontWeight: FontWeights.bold,
-            fontSize: FontSizes.xLarge,
-          }}
-        >
-          Recurring Payments
-        </Text>
-        <TouchableOpacity style={{ marginTop: height * 0.01 }}>
-          <NotificationIcon />
-        </TouchableOpacity>
-      </View>
+        Recurring Payments
+      </Text>
       <View
         style={[
           Styles.flexRow,
@@ -298,13 +289,13 @@ export default function RecurringPayments() {
           }}
           onEndReachedThreshold={0.5}
           refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-            progressBackgroundColor={colors.background}
-          />
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
+              progressBackgroundColor={colors.background}
+            />
           }
           ListEmptyComponent={
             <Text
