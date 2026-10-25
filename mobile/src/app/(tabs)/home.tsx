@@ -107,44 +107,31 @@ export default function Home() {
         },
       ]}
     >
-      <View
-        style={[
-          Styles.flexRow,
-          {
-            width: width * SCREEN_WIDTH_RATIO,
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-          },
-        ]}
-      >
-        <View style={{ gap: 3 }}>
-          {isProfilePending || isSettingsPending ? (
-            <Skeleton width={width * 0.6} height={FontSizes.xLarge * 1.2} />
-          ) : (
-            <Text
-              style={{
-                color: colors.textPrimary,
-                fontWeight: FontWeights.bold,
-                fontSize: FontSizes.xLarge,
-              }}
-            >
-              {firstName ? `${greeting}, ${firstName}!` : `${greeting}!`}
-            </Text>
-          )}
+      <View style={{ width: width * SCREEN_WIDTH_RATIO }}>
+        {isProfilePending || isSettingsPending ? (
+          <Skeleton width={width * 0.6} height={FontSizes.xLarge * 1.2} />
+        ) : (
           <Text
             style={{
-              color: colors.textSecondary,
-              fontWeight: FontWeights.medium,
-              fontSize: FontSizes.medium,
+              color: colors.textPrimary,
+              fontWeight: FontWeights.bold,
+              fontSize: FontSizes.xLarge,
             }}
           >
-            Here's your payments overview
+            {firstName ? `${greeting}, ${firstName}!` : `${greeting}!`}
           </Text>
-        </View>
-        <TouchableOpacity style={{ marginTop: height * 0.01 }}>
-          <NotificationIcon />
-        </TouchableOpacity>
+        )}
+        <Text
+          style={{
+            color: colors.textSecondary,
+            fontWeight: FontWeights.medium,
+            fontSize: FontSizes.medium,
+          }}
+        >
+          Here's your payments overview
+        </Text>
       </View>
+
       <View
         style={[
           Styles.flexRow,

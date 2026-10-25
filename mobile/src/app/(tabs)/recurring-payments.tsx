@@ -16,13 +16,15 @@ import FilterIcon from "@/assets/icons/filter.svg";
 import ArrowUpIcon from "@/assets/icons/arrow-up.svg";
 import ArrowDownIcon from "@/assets/icons/arrow-down.svg";
 import WalletCardsIcon from "@/assets/icons/wallet-cards.svg";
-import PlusIcon from "@/assets/icons/plus.svg";
 import { Styles } from "@/styles/stylesheets";
 import { useTypography } from "@/hooks/useTypography";
 import { useRefresh } from "@/hooks/useRefresh";
 import { useTheme } from "@/contexts/ThemeContext";
 import { FontWeights } from "@/styles/typography";
-import { SCREEN_PADDING_TOP_RATIO, SCREEN_WIDTH_RATIO } from "@/constants/dimensions";
+import {
+  SCREEN_PADDING_TOP_RATIO,
+  SCREEN_WIDTH_RATIO,
+} from "@/constants/dimensions";
 import { SearchBar } from "@/components/SearchBar";
 import {
   RecurringPaymentsFilterModal,
@@ -104,29 +106,17 @@ export default function RecurringPayments() {
         },
       ]}
     >
-      <View
-        style={[
-          Styles.flexRow,
-          {
-            width: width * SCREEN_WIDTH_RATIO,
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-          },
-        ]}
+      <Text
+        style={{
+          color: colors.textPrimary,
+          fontWeight: FontWeights.bold,
+          fontSize: FontSizes.xLarge,
+          textAlign: "left",
+          width: width * SCREEN_WIDTH_RATIO,
+        }}
       >
-        <Text
-          style={{
-            color: colors.textPrimary,
-            fontWeight: FontWeights.bold,
-            fontSize: FontSizes.xLarge,
-          }}
-        >
-          Recurring Payments
-        </Text>
-        <TouchableOpacity style={{ marginTop: height * 0.01 }}>
-          <NotificationIcon />
-        </TouchableOpacity>
-      </View>
+        Recurring Payments
+      </Text>
       <View
         style={[
           Styles.flexRow,
@@ -299,13 +289,13 @@ export default function RecurringPayments() {
           }}
           onEndReachedThreshold={0.5}
           refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-            progressBackgroundColor={colors.background}
-          />
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
+              progressBackgroundColor={colors.background}
+            />
           }
           ListEmptyComponent={
             <Text
@@ -478,28 +468,6 @@ export default function RecurringPayments() {
         value={sort}
         onSelect={setSort}
       />
-
-      <TouchableOpacity
-        onPress={() => router.push("/recurring-payments/add")}
-        style={{
-          position: "absolute",
-          right: (width * (1 - SCREEN_WIDTH_RATIO)) / 2,
-          bottom: height * 0.03,
-          width: 60,
-          height: 60,
-          borderRadius: 30,
-          backgroundColor: colors.primary,
-          alignItems: "center",
-          justifyContent: "center",
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.2,
-          shadowRadius: 4,
-          elevation: 4,
-        }}
-      >
-        <PlusIcon color={colors.surface} />
-      </TouchableOpacity>
     </View>
   );
 }
