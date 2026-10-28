@@ -213,3 +213,35 @@ export const UpcomingDueListSkeleton = ({ count = 3 }: { count?: number }) => (
     ))}
   </Animated.View>
 );
+
+export const NotificationListSkeleton = ({ count = 6 }: { count?: number }) => {
+  const { colors } = useTheme();
+
+  return (
+    <Animated.View style={{ gap: 10 }}>
+      {Array.from({ length: count }).map((_, index) => (
+        <Animated.View
+          key={index}
+          style={[
+            Styles.flexRow,
+            {
+              alignItems: "flex-start",
+              borderWidth: 1,
+              borderColor: colors.border,
+              borderRadius: 10,
+              gap: 10,
+              padding: 12,
+            },
+          ]}
+        >
+          <Skeleton width={36} height={36} borderRadius={18} />
+          <Animated.View style={{ flex: 1, gap: 6 }}>
+            <Skeleton width="60%" height={14} />
+            <Skeleton width="90%" height={10} />
+            <Skeleton width="25%" height={10} />
+          </Animated.View>
+        </Animated.View>
+      ))}
+    </Animated.View>
+  );
+};
