@@ -10,6 +10,7 @@ import { FindAllRecurringPaymentDto } from '@/recurring-payment/dto/find-all-rec
 import { UpdateRecurringPaymentDto } from '@/recurring-payment/dto/update-recurring-payment.dto';
 import { ConfirmBillingCycleDto } from '@/recurring-payment/dto/confirm-billing-cycle.dto';
 import {
+    NotificationType,
     RecurringPaymentBillingCycle,
     RecurringPaymentBillingDateType,
     RecurringPaymentDueDateType,
@@ -21,6 +22,7 @@ import {
 import { UserService } from '@/user/user.service';
 import { EmailService } from '@/email/email.service';
 import { CategoryService } from '@/category/category.service';
+import { NotificationService } from '@/notification/notification.service';
 import { UserModel } from '@/user/models/user.model';
 import { UserSettingsModel } from '@/user/models/user-settings.model';
 
@@ -38,6 +40,7 @@ export class RecurringPaymentService {
         private readonly userService: UserService,
         private readonly emailService: EmailService,
         private readonly categoryService: CategoryService,
+        private readonly notificationService: NotificationService,
     ) {}
 
     async create(
@@ -538,6 +541,7 @@ export class RecurringPaymentService {
                         await this.notifyFreeTrialConvertedToPaid(
                             payment,
                             nextDueDate,
+                            userSettingsTimezone,
                         );
                     }
                 } catch (error) {
@@ -566,6 +570,7 @@ export class RecurringPaymentService {
     private async notifyFreeTrialConvertedToPaid(
         payment: RecurringPaymentModel,
         nextDueDate: Date,
+        timezone: string,
     ) {
         const foundUser = await this.userService.findById(payment.user_id);
 
@@ -575,6 +580,13 @@ export class RecurringPaymentService {
             );
             return;
         }
+
+        await this.createNotification(payment, {
+            type: NotificationType.FreeTrialConvertedToPaid,
+            title: `${payment.name} is now a paid subscription`,
+            body: `Your free trial has ended. Your next payment of ${payment.currency} ${payment.amount} is due on ${format(toZonedTime(nextDueDate, timezone), 'MMMM d, yyyy')}.`,
+            data: { due_date: nextDueDate },
+        });
 
         await this.emailService.sendFreeTrialConvertedToPaid(
             foundUser.email,
@@ -599,6 +611,13 @@ export class RecurringPaymentService {
             return;
         }
 
+        await this.createNotification(payment, {
+            type: NotificationType.FreeTrialEnded,
+            title: `${payment.name} free trial has ended`,
+            body: `Your trial ended on ${format(trialEndDate, 'MMMM d, yyyy')}. It wasn't set to auto-renew, so it was cancelled and archived.`,
+            data: { due_date: payment.due_date },
+        });
+
         await this.emailService.sendFreeTrialEnded(
             foundUser.email,
             foundUser.first_name,
@@ -620,12 +639,43 @@ export class RecurringPaymentService {
             return;
         }
 
+        await this.createNotification(payment, {
+            type: NotificationType.PaymentArchived,
+            title: `${payment.name} was archived`,
+            body: `It was due on ${format(dueDate, 'MMMM d, yyyy')} and isn't set to auto-renew, so it was moved to your archived payments.`,
+            data: { due_date: payment.due_date },
+        });
+
         await this.emailService.sendPaymentArchived(
             foundUser.email,
             foundUser.first_name,
             payment.name,
             dueDate,
         );
+    }
+
+    // A failed notification shouldn't stop the email from being sent.
+    private async createNotification(
+        payment: RecurringPaymentModel,
+        notification: {
+            type: NotificationType;
+            title: string;
+            body: string;
+            data: Record<string, unknown>;
+        },
+    ) {
+        try {
+            await this.notificationService.create({
+                user_id: payment.user_id,
+                recurring_payment_id: payment.id,
+                ...notification,
+            });
+        } catch (error) {
+            this.logger.error(
+                `Error creating ${notification.type} notification for recurring payment: ${payment.id}`,
+                error,
+            );
+        }
     }
 
     async confirmBillingCycle(

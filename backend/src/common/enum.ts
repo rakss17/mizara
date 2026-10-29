@@ -49,6 +49,16 @@ export enum SentReminderType {
     CycleConfirmation = 'cycle_confirmation',
 }
 
+export enum NotificationType {
+    Due = 'due',
+    Overdue = 'overdue',
+    CycleConfirmation = 'cycle_confirmation',
+    PaymentArchived = 'payment_archived',
+    FreeTrialEndingSoon = 'free_trial_ending_soon',
+    FreeTrialEnded = 'free_trial_ended',
+    FreeTrialConvertedToPaid = 'free_trial_converted_to_paid',
+}
+
 export enum Theme {
     Light = 'light',
     Dark = 'dark',

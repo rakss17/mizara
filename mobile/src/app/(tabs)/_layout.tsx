@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Pressable, Text, View } from "react-native";
+import { AppState, Pressable, Text, View } from "react-native";
 import { Tabs, router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -11,12 +11,28 @@ import SettingsIcon from "@/assets/icons/settings.svg";
 import { isThemeMode, useTheme } from "@/contexts/ThemeContext";
 import { useTypography } from "@/hooks/useTypography";
 import { useUserSettings } from "@/services/user/hooks";
+import { useUnreadNotificationCount } from "@/services/notification/hooks";
+import { formatUnreadBadge } from "@/utils/notification";
 
 export default function TabsLayout() {
   const { colors, hasStoredThemeMode, setThemeMode } = useTheme();
   const FontSizes = useTypography();
   const { userSettings } = useUserSettings();
+  const { unreadCount, refetch: refetchUnreadCount } =
+    useUnreadNotificationCount();
   const insets = useSafeAreaInsets();
+
+  // Notifications are created in the background, so refresh the badge when
+  // the app comes back to the foreground.
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        refetchUnreadCount();
+      }
+    });
+
+    return () => subscription.remove();
+  }, [refetchUnreadCount]);
 
   // Fresh install / new device: adopt the account's theme. A theme already
   // chosen on this device always wins.
@@ -103,6 +119,13 @@ export default function TabsLayout() {
         options={{
           title: "Notifications",
           tabBarIcon: ({ color }) => <NotificationIcon color={color} />,
+          tabBarBadge:
+            unreadCount > 0 ? formatUnreadBadge(unreadCount) : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: colors.danger,
+            color: colors.surface,
+            fontSize: FontSizes.tiny,
+          },
         }}
       />
       <Tabs.Screen

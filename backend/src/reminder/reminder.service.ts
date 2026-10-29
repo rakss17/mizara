@@ -8,6 +8,7 @@ import { RecurringPaymentModel } from '@/recurring-payment/models/recurring-paym
 import { ReminderSettingsModel } from './models/reminder-settings.model';
 import { SentReminderModel } from './models/sent-reminder.model';
 import {
+    NotificationType,
     RecurringPaymentType,
     ReminderChannel,
     ReminderOffsetDays,
@@ -16,6 +17,7 @@ import {
 import { DueReminder } from './types/due-reminder.type';
 import { UserService } from '@/user/user.service';
 import { EmailService } from '@/email/email.service';
+import { NotificationService } from '@/notification/notification.service';
 import { UserModel } from '@/user/models/user.model';
 import { UserSettingsModel } from '@/user/models/user-settings.model';
 
@@ -28,6 +30,7 @@ export class ReminderService {
     constructor(
         private readonly userService: UserService,
         private readonly emailService: EmailService,
+        private readonly notificationService: NotificationService,
         @InjectModel(RecurringPaymentModel)
         private recurringPaymentModel: typeof RecurringPaymentModel,
         @InjectModel(SentReminderModel)
@@ -200,6 +203,66 @@ export class ReminderService {
                     `Successfully sent reminder to user: ${foundUser.email} via ${reminderChannel}`,
                 );
             }
+
+            await this.createDueNotification(dueReminder);
+        }
+    }
+
+    private async createDueNotification(dueReminder: DueReminder) {
+        const { recurringPayment, offsetDays, timezone } = dueReminder;
+        const dueDate = toZonedTime(recurringPayment.due_date, timezone);
+        const when =
+            offsetDays === ReminderOffsetDays.DueDay
+                ? 'today'
+                : offsetDays === ReminderOffsetDays.OneDayBefore
+                  ? 'tomorrow'
+                  : `in ${offsetDays} days`;
+        const amount = `${recurringPayment.currency} ${recurringPayment.amount}`;
+        const formattedDueDate = format(dueDate, 'MMMM d, yyyy');
+        const data = {
+            due_date: recurringPayment.due_date,
+            offset_days: offsetDays,
+        };
+
+        await this.createNotification(
+            recurringPayment,
+            recurringPayment.is_free_trial
+                ? {
+                      type: NotificationType.FreeTrialEndingSoon,
+                      title: `${recurringPayment.name} free trial ends ${when}`,
+                      body: `Your trial ends on ${formattedDueDate}. You'll be charged ${amount} (${recurringPayment.billing_cycle}) unless you cancel.`,
+                      data,
+                  }
+                : {
+                      type: NotificationType.Due,
+                      title: `${recurringPayment.name} is due ${when}`,
+                      body: `${amount} is due on ${formattedDueDate}.`,
+                      data,
+                  },
+        );
+    }
+
+    // A failed notification shouldn't stop the email from being sent.
+    private async createNotification(
+        recurringPayment: RecurringPaymentModel,
+        notification: {
+            type: NotificationType;
+            title: string;
+            body: string;
+            data: Record<string, unknown>;
+        },
+    ) {
+        try {
+            await this.notificationService.create({
+                user_id: recurringPayment.user_id,
+                recurring_payment_id: recurringPayment.id,
+                ...notification,
+            });
+        } catch (error) {
+            this.logger.error(
+                `Error creating ${notification.type} notification for recurring payment: ${recurringPayment.id}`,
+                error,
+            );
         }
     }
 
@@ -263,6 +326,13 @@ export class ReminderService {
                     SentReminderType.Overdue,
                     timezone,
                 );
+
+                await this.createNotification(bill, {
+                    type: NotificationType.Overdue,
+                    title: `${bill.name} is overdue`,
+                    body: `${bill.currency} ${bill.amount} was due on ${format(toZonedTime(bill.due_date, timezone), 'MMMM d, yyyy')}. Mark it as paid once it's settled.`,
+                    data: { cycle_due_date: bill.due_date },
+                });
 
                 this.logger.log(
                     `Successfully sent overdue email to user: ${foundUser.email} for recurring payment: ${bill.id}`,
@@ -329,6 +399,13 @@ export class ReminderService {
                     SentReminderType.CycleConfirmation,
                     timezone,
                 );
+
+                await this.createNotification(bill, {
+                    type: NotificationType.CycleConfirmation,
+                    title: `Confirm your ${bill.name} bill`,
+                    body: `Your new ${bill.name} bill is ready. Confirm this cycle's amount and due date.`,
+                    data: { cycle_due_date: bill.due_date },
+                });
 
                 this.logger.log(
                     `Successfully sent cycle confirmation email to user: ${foundUser.email} for recurring payment: ${bill.id}`,
